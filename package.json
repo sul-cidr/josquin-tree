@@ -33,6 +33,7 @@
     "time-grunt": "^1.2.2"
   },
   "dependencies": {
+    "d3": "^3.5.9",
     "lodash": "^3.10.1"
   }
 }
