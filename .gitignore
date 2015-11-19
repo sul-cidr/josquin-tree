@@ -1,0 +1,11 @@
+
+*.egg-info
+*.pyc
+
+/node_modules
+/_site
+/.grunt
+/env
+/build
+/dist
+/tmp
