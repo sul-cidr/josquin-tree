@@ -7,3 +7,11 @@ compile:min:
   - compile
   - uglify
   - cssmin
+
+server:
+  - connect
+  - watch
+
+default:
+  - compile
+  - server
