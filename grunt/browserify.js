@@ -1,16 +1,13 @@
 
 
-export default {
+module.exports = {
 
   options: {
 
     transform: [
 
       ['babelify', {
-        optional: [
-          'es7.classProperties',
-          'es7.decorators',
-        ]
+        presets: ['es2015', 'stage-1']
       }],
 
     ],
