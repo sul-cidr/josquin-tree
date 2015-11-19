@@ -1,0 +1,15 @@
+{
+  "name": "josquin-tree",
+  "version": "1.0.0",
+  "description": "Visualizing note and rhythm sequences in Renaissance music.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sul-cidr/josquin-tree.git"
+  },
+  "author": "David McClure",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sul-cidr/josquin-tree/issues"
+  },
+  "homepage": "https://github.com/sul-cidr/josquin-tree#readme"
+}
