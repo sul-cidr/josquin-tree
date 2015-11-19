@@ -12,6 +12,10 @@ server:
   - connect
   - watch
 
+deploy:
+  - compile:min
+  - gh-pages
+
 default:
   - compile
   - server
