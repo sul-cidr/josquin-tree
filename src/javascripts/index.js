@@ -5,10 +5,10 @@ import data from './flare.json';
 
 
 let w = 700;
-let h = 1700;
+let h = 3000;
 
 let cluster = d3.layout.cluster()
-  .size([h, w]);
+  .size([h, w-220]);
 
 let diagonal = d3.svg.diagonal()
   .projection(function(d) {
@@ -20,7 +20,8 @@ let svg = d3.select('#root')
   .attr('id', 'tree')
   .attr('width', w)
   .attr('height', h)
-  .append('g');
+  .append('g')
+  .attr('transform', 'translate(60,0)');
 
 let nodes = cluster.nodes(data);
 let links = cluster.links(nodes);
