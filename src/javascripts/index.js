@@ -17,6 +17,7 @@ let diagonal = d3.svg.diagonal()
 
 let svg = d3.select('#root')
   .append('svg')
+  .attr('id', 'tree')
   .attr('width', w)
   .attr('height', h)
   .append('g');
@@ -48,6 +49,9 @@ node.append('text')
     return d.children ? -8 : 8;
   })
   .attr('dy', 3)
+  .classed('leaf', function(d) {
+    return !d.children;
+  })
   .text(function(d) {
     return d.name;
   });
