@@ -1,7 +1,11 @@
 
 
 import d3 from 'd3';
-import data from './flare.json';
+import notes from './data/notes.json';
+import flare from './flare.json';
+
+
+// tree test
 
 
 let w = 700;
@@ -23,7 +27,7 @@ let svg = d3.select('#root')
   .append('g')
   .attr('transform', 'translate(60,0)');
 
-let nodes = cluster.nodes(data);
+let nodes = cluster.nodes(flare);
 let links = cluster.links(nodes);
 
 let link = svg.selectAll('.link')
@@ -56,3 +60,8 @@ node.append('text')
   .text(function(d) {
     return d.name;
   });
+
+
+// suffix tree test
+
+console.log(notes.length);
