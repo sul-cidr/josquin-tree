@@ -9,9 +9,11 @@ import flare from './flare.json';
 
 // tree test
 
+let t = new SuffixTree(notes);
+let data = t.query('A', 2);
 
 let w = 700;
-let h = 3000;
+let h = 2000;
 
 let cluster = d3.layout.cluster()
   .size([h, w-220]);
@@ -29,7 +31,7 @@ let svg = d3.select('#root')
   .append('g')
   .attr('transform', 'translate(60,0)');
 
-let nodes = cluster.nodes(flare);
+let nodes = cluster.nodes(data);
 let links = cluster.links(nodes);
 
 let link = svg.selectAll('.link')
@@ -62,8 +64,3 @@ node.append('text')
   .text(function(d) {
     return d.name;
   });
-
-
-// suffix tree test
-
-window.t = new SuffixTree(notes);
