@@ -66,5 +66,4 @@ node.append('text')
 
 // suffix tree test
 
-let t = new SuffixTree(notes);
-console.log(t);
+window.t = new SuffixTree(notes);

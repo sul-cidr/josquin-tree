@@ -7,7 +7,7 @@ export default class {
 
 
   /**
-   * Set the raw sequence.
+   * Initialize empty tree.
    *
    * @param {Array} sequence
    */
@@ -44,6 +44,43 @@ export default class {
       }
 
     }
+
+  }
+
+
+  /**
+   * Query a subtree.
+   *
+   * @param {Mixed} root
+   * @param {Number} depth
+   * @param {Number} size
+   */
+  query(root, depth, size=null) {
+
+    let subtree = {
+      name: root,
+      size: size,
+    };
+
+    if (depth > 0) {
+
+      let pairs = _.pairs(this.tree[root]);
+
+      // Sort by count ASC.
+      pairs = _.sortBy(pairs, function(p) {
+        return p[1];
+      });
+
+      // Sort DESC.
+      pairs = pairs.reverse();
+
+      subtree.children = _.map(pairs, p => {
+        return this.query(p[0], depth-1, p[1]);
+      });
+
+    }
+
+    return subtree;
 
   }
 
