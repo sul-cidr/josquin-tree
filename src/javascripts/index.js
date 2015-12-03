@@ -1,6 +1,8 @@
 
 
 import d3 from 'd3';
+import SuffixTree from './suffix-tree';
+
 import notes from './data/notes.json';
 import flare from './flare.json';
 
@@ -65,3 +67,4 @@ node.append('text')
 // suffix tree test
 
 console.log(notes.length);
+window.SuffixTree = SuffixTree;
