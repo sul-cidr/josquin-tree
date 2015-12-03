@@ -1,5 +1,8 @@
 
 
+import _ from 'lodash';
+
+
 export default class {
 
 
@@ -28,9 +31,17 @@ export default class {
       let a = this.sequence[i];
       let b = this.sequence[i+1];
 
-      // if not tree has a, tree.a = {}
-      // if not tree.a.b, tree.a.b = 1
-      // else tree.a.b++
+      if (!_.has(this.tree, a)) {
+        this.tree[a] = {};
+      }
+
+      else if (!_.has(this.tree[a], b)) {
+        this.tree[a][b] = 1;
+      }
+
+      else {
+        this.tree[a][b]++;
+      }
 
     }
 
