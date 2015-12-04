@@ -32,7 +32,9 @@
     "time-grunt": "^1.2.2"
   },
   "dependencies": {
+    "bootstrap": "^3.3.6",
     "d3": "^3.5.9",
+    "jquery": "^2.1.4",
     "lodash": "^3.10.1",
     "triejs": "^0.1.5"
   }

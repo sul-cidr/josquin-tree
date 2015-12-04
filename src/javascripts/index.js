@@ -1,5 +1,6 @@
 
 
+import $ from 'jquery';
 import d3 from 'd3';
 import SuffixTree from './suffix-tree';
 
@@ -7,12 +8,10 @@ import notes from './data/notes.json';
 import flare from './flare.json';
 
 
-// tree test
+let tree = new SuffixTree(notes);
+$('.count').text(`${notes.length.toLocaleString()} notes`)
 
-let t = new SuffixTree(notes);
-let data = t.query('Bb', 2);
-
-let w = 700;
+let w = 1000;
 let h = 2000;
 
 let cluster = d3.layout.cluster()
@@ -31,36 +30,51 @@ let svg = d3.select('#root')
   .append('g')
   .attr('transform', 'translate(60,0)');
 
-let nodes = cluster.nodes(data);
-let links = cluster.links(nodes);
 
-let link = svg.selectAll('.link')
-  .data(links)
-  .enter()
-  .append('path')
-  .attr('class', 'link')
-  .attr('d', diagonal);
+function drawTree() {
 
-let node = svg.selectAll('.node')
-  .data(nodes)
-  .enter()
-  .append('g')
-  .attr('class', 'node')
-  .attr('transform', function(d) {
-    return `translate(${d.y},${d.x})`;
-  });
+  svg.text('');
 
-node.append('circle')
-  .attr('r', 4);
+  let root = $('input[name="root"]').val();
+  let depth = Number($('input[name="depth"]').val());
 
-node.append('text')
-  .attr('dx', function(d) {
-    return d.children ? -8 : 8;
-  })
-  .attr('dy', 3)
-  .classed('leaf', function(d) {
-    return !d.children;
-  })
-  .text(function(d) {
-    return d.name;
-  });
+  let data = tree.query(root, depth);
+
+  let nodes = cluster.nodes(data);
+  let links = cluster.links(nodes);
+
+  let link = svg.selectAll('.link')
+    .data(links)
+    .enter()
+    .append('path')
+    .attr('class', 'link')
+    .attr('d', diagonal);
+
+  let node = svg.selectAll('.node')
+    .data(nodes)
+    .enter()
+    .append('g')
+    .attr('class', 'node')
+    .attr('transform', function(d) {
+      return `translate(${d.y},${d.x})`;
+    });
+
+  node.append('circle')
+    .attr('r', 4);
+
+  node.append('text')
+    .attr('dx', function(d) {
+      return d.children ? -8 : 8;
+    })
+    .attr('dy', 3)
+    .classed('leaf', function(d) {
+      return !d.children;
+    })
+    .text(function(d) {
+      return d.name;
+    });
+
+};
+
+$('button').click(drawTree);
+drawTree();
