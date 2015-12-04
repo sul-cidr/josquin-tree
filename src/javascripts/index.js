@@ -10,6 +10,8 @@ import flare from './flare.json';
 // tree test
 
 let t = new SuffixTree(notes);
+window.t = t;
+
 let data = t.query('A', 2);
 
 let w = 700;
