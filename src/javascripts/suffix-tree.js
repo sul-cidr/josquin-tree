@@ -55,8 +55,7 @@ export default class {
     });
 
     let tree = {
-      name: root,
-      count: 1,
+      name: root
     };
 
     _.each(suffixes, suffix => {
@@ -64,41 +63,30 @@ export default class {
 
         let leaf;
 
-        // If no children, initialize the array and set the first value.
-
+        // If no children, create the array.
         if (!parent.children) {
-
-          leaf = {
-            name: token,
-            count: 0,
-          }
-
+          leaf = { name: token, count: 0 }
           parent.children = [leaf];
-
         }
 
-        // Otherwise, probe for an existing entry for the new token.
 
         else {
 
+          // Probe for an existing entry.
           let existing = _.find(parent.children, function(child) {
             return child.name == token;
           });
 
+          // If one is found, bump the count.
           if (existing) {
             existing.count++;
             leaf = existing;
           }
 
+          // Otherwise, push the new token.
           else {
-
-            leaf = {
-              name: token,
-              count: 0,
-            }
-
+            leaf = { name: token, count: 0}
             parent.children.push(leaf);
-
           }
 
         }
@@ -107,6 +95,8 @@ export default class {
 
       }, tree);
     });
+
+    console.log(tree);
 
     return tree;
 
