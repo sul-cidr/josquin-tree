@@ -46,10 +46,6 @@ export default class {
    */
   query(root, depth=10) {
 
-    // find all occurrences of the root node
-    // take the N next elements
-    // zip through the pairs, index the tree
-
     let suffixes = _.map(this.offsets[root], i => {
       return this.seq.slice(i+1, i+1+depth);
     });
@@ -95,8 +91,6 @@ export default class {
 
       }, tree);
     });
-
-    console.log(tree);
 
     return tree;
 
