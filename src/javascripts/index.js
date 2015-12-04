@@ -12,7 +12,7 @@ import flare from './flare.json';
 let t = new SuffixTree(notes);
 window.t = t;
 
-let data = t.query('A', 2);
+let data = t.query('A', 3);
 
 let w = 700;
 let h = 2000;
