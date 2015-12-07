@@ -2,17 +2,16 @@
 
 import $ from 'jquery';
 import d3 from 'd3';
-import SuffixTree from './suffix-tree';
+import SuffixTree from 'suffix-tree';
 
 import notes from './data/notes.json';
-import flare from './flare.json';
 
 
 let tree = new SuffixTree(notes);
 $('.count').text(`${notes.length.toLocaleString()} notes`)
 
 let w = 1000;
-let h = 2000;
+let h = 1000;
 
 let cluster = d3.layout.cluster()
   .size([h, w-220]);
@@ -37,8 +36,9 @@ function drawTree() {
 
   let root = $('input[name="root"]').val();
   let depth = Number($('input[name="depth"]').val());
+  let maxChildren = Number($('input[name="max-children"]').val());
 
-  let data = tree.query(root, depth);
+  let data = tree.query(root, depth, maxChildren);
 
   let nodes = cluster.nodes(data);
   let links = cluster.links(nodes);
