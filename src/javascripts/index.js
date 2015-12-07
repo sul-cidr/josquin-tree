@@ -70,8 +70,8 @@ function drawTree() {
     .classed('leaf', function(d) {
       return !d.children;
     })
-    .text(function(d) {
-      return d.name;
+    .html(function(d) {
+      return `${d.name} (${d.count.toLocaleString()})`;
     });
 
 };
