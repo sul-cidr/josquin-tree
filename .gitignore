@@ -5,5 +5,3 @@ __pycache__
 /_site
 /.grunt
 /env
-
-/src/javascripts/data/*.json
