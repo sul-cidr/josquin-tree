@@ -4,6 +4,7 @@ import $ from 'jquery';
 import d3 from 'd3';
 import SuffixTree from 'suffix-tree';
 
+// import notes from './data/notes_abbrev.json';
 import notes from './data/notes.json';
 
 
