@@ -1,28 +1,29 @@
+// index.js
+// interface to load data, render tree
+// from Josquin Research Project notetree API ()
+
 import $ from 'jquery';
 import d3 from 'd3';
 import SuffixTree from 'suffix-tree';
 
+// load sample data from files
 import raw from './data/notes_JosSongs.json';
-import notes from './data/notes_abbrev.json';
-// console.log('notes',notes)
+
 var apitree = ''
 var apinotes = new Array;
 
 function loadApiSample() {
-  // let apinotes = new Array;
   for(let r of raw) {
     for(let f of r.features.pitch) {
       for(let p of f) {
         // console.log(p)
         apinotes.push(p)
       }
+      apinotes.push("X")
     }
   }
   drawTree(apinotes)
 }
-
-let tree = new SuffixTree(notes);
-$('.count').text(`${notes.length.toLocaleString()} notes`)
 
 let w = 1000;
 let h = 1000;
@@ -46,17 +47,23 @@ let svg = d3.select('#root')
 function loadData() {
   let c = $('select[name="composer"]').val()
   let g = $('select[name="genre"]').val()
-  console.log('load '+ $('select[name="genre"]').val() +' data for '+
-    $('select[name="composer"]').val())
   let url = 'http://josquin.stanford.edu/cgi-bin/jrp?a=notetree&f=' + c + '&genre='
-  if (g !='') {url += g}
+  if (g !='') {url += g} else g='all'
+  console.log('load '+ g +' data for ' + c)
   console.log('from ' + url)
 
-  // when cross-domain not in issue:
-  // d3.json(url_pre, function(error, data) {
+  // once cross-domain not an issue:
+  // d3.json(url_pre, function(error, raw) {
   //   // parse payload
-  //   let notes = []
-  //   // for each piece push elements of each array within features.pitch to notes[]
+  //   for(let r of raw) {
+  //     for(let f of r.features.pitch) {
+  //       for(let p of f) {
+  //         // console.log(p)
+  //         apinotes.push(p)
+  //       }
+  //     }
+  //   }
+  //   drawTree(apinotes)
   // })
 }
 
@@ -115,4 +122,4 @@ $('#b_render').click(function(){
 })
 
 loadApiSample();
-// drawTree();
+// loadData();
