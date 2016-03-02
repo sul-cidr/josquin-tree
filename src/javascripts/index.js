@@ -1,12 +1,27 @@
-
-
 import $ from 'jquery';
 import d3 from 'd3';
 import SuffixTree from 'suffix-tree';
 
-// import notes from './data/notes_abbrev.json';
-import notes from './data/notes.json';
+import raw from './data/notes_JosSongs.json';
+import notes from './data/notes_abbrev.json';
+// console.log('notes',notes)
+var apitree = ''
 
+function loadApiSample() {
+  let apinotes = new Array;
+  for(let r of raw) {
+    for(let f of r.features.pitch) {
+      for(let p of f) {
+        // console.log(p)
+        apinotes.push(p)
+      }
+    }
+  }
+  apitree = new SuffixTree(apinotes);
+  $('.count').text(`${apinotes.length.toLocaleString()} notes`)
+  console.log('loadApiSamle() apitree',apitree)
+  drawTree(apitree)
+}
 
 let tree = new SuffixTree(notes);
 $('.count').text(`${notes.length.toLocaleString()} notes`)
@@ -30,9 +45,25 @@ let svg = d3.select('#root')
   .append('g')
   .attr('transform', 'translate(60,0)');
 
+function loadData() {
+  let c = $('select[name="composer"]').val()
+  let g = $('select[name="genre"]').val()
+  console.log('load '+ $('select[name="genre"]').val() +' data for '+
+    $('select[name="composer"]').val())
+  let url = 'http://josquin.stanford.edu/cgi-bin/jrp?a=notetree&f=' + c + '&genre='
+  if (g !='') {url += g}
+  console.log('from ' + url)
 
-function drawTree() {
+  // when cross-domain not in issue:
+  // d3.json(url_pre, function(error, data) {
+  //   // parse payload
+  //   let notes = []
+  //   // for each piece push elements of each array within features.pitch to notes[]
+  // })
+}
 
+function drawTree(tree) {
+  console.log('drawTree() apitree',tree)
   svg.text('');
 
   let root = $('input[name="root"]').val();
@@ -77,5 +108,7 @@ function drawTree() {
 
 };
 
-$('button').click(drawTree);
-drawTree();
+$('#b_data').click(loadData);
+$('#b_render').click(drawTree);
+loadApiSample();
+// drawTree();

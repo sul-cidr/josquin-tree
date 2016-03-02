@@ -11,11 +11,50 @@ html(lang="en")
 
       h4.count
 
-      form
+      form.form-data
+
+        .form-group
+          label Composer
+          select.form-control.input-sm(type="select", name="composer")
+            option(value="Agr") Agricola
+            option(value="Ano") Anonymous
+            option(value="Bru") Brumel
+            option(value="Bus") Busnoys
+            option(value="Com") Compere
+            option(value="Duf") Du Fay
+            option(value="Gas") Gaspar
+            option(value="Isa") Isaac
+            option(value="Jap") Japart
+            option(value="Jos") Josquin
+            option(value="Joa") Josquin (secure)
+            option(value="Job") Josquin (not secure)
+            option(value="Rue") La Rue
+            option(value="Mar") Martini
+            option(value="Mou") Mouton
+            option(value="Obr") Obrecht
+            option(value="Ock") Ockeghem
+            option(value="Ort") de Orto
+            option(value="Pip") Pipelare
+            option(value="Reg") Regis
+            option(value="Tin") Tinctoris
+
+        .form-group
+          label Genre
+          select.form-control.input-sm(name="genre", id="genre_select")
+            option(value="") All
+            option(value="masses") Masses
+            option(value="motets") Motets
+            option(value="songs") Songs
+
+      button.btn.btn-primary#b_data Load Data
+
+      hr
+
+      form.form-render
 
         .form-group
           label Root Note
-          input.form-control.input-sm(name="root", value="A")
+          input.form-control.input-sm(name="root", value="C")
 
         .form-group
           label Tree Depth
@@ -25,7 +64,7 @@ html(lang="en")
           label Max Children
           input.form-control.input-sm(name="max-children", value="6")
 
-      button.btn.btn-primary Render Tree
+      button.btn.btn-primary#b_render Render Tree
 
     #root
 
