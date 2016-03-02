@@ -6,9 +6,10 @@ import raw from './data/notes_JosSongs.json';
 import notes from './data/notes_abbrev.json';
 // console.log('notes',notes)
 var apitree = ''
+var apinotes = new Array;
 
 function loadApiSample() {
-  let apinotes = new Array;
+  // let apinotes = new Array;
   for(let r of raw) {
     for(let f of r.features.pitch) {
       for(let p of f) {
@@ -17,10 +18,7 @@ function loadApiSample() {
       }
     }
   }
-  apitree = new SuffixTree(apinotes);
-  $('.count').text(`${apinotes.length.toLocaleString()} notes`)
-  console.log('loadApiSamle() apitree',apitree)
-  drawTree(apitree)
+  drawTree(apinotes)
 }
 
 let tree = new SuffixTree(notes);
@@ -62,8 +60,11 @@ function loadData() {
   // })
 }
 
-function drawTree(tree) {
-  console.log('drawTree() apitree',tree)
+function drawTree(notes) {
+  // console.log('drawTree() notes', notes)
+  let tree = new SuffixTree(notes);
+  $('.count').text(`${apinotes.length.toLocaleString()} notes`)
+
   svg.text('');
 
   let root = $('input[name="root"]').val();
@@ -109,6 +110,9 @@ function drawTree(tree) {
 };
 
 $('#b_data').click(loadData);
-$('#b_render').click(drawTree);
+$('#b_render').click(function(){
+  drawTree(apinotes);
+})
+
 loadApiSample();
 // drawTree();
