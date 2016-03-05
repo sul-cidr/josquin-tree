@@ -53,37 +53,31 @@ function loadData() {
   if (g !='') {url += g} else g='all'
   console.log('load '+ g +' data for ' + c)
   console.log('from ' + url)
-
-  // once cross-domain not an issue:
-  // d3.json(url_pre, function(error, raw) {
-  //   // parse payload
-  //   for(let r of raw) {
-  //     for(let f of r.features.pitch) {
-  //       for(let p of f) {
-  //         // console.log(p)
-  //         apinotes.push(p)
-  //       }
-  //     }
-  //   }
-  //   drawTree(apinotes)
-  // })
 }
 
-function drawTree(notes) {
-  // console.log('drawTree() notes', notes)
+function drawTree(notes, start=null) {
+  // console.log('drawTree() start', start)
   let tree = new SuffixTree(notes);
+  var root = ''
   $('.count').text(`${apinotes.length.toLocaleString()} notes`)
 
   svg.text('');
-
-  let root = $('input[name="root"]').val();
+  if(start == null) {
+    root = $('input[name="root"]').val();
+  } else {
+    $('input[name="root"]').val(start)
+    root = start;
+  }
   let depth = Number($('input[name="depth"]').val());
   let maxChildren = Number($('input[name="max-children"]').val());
 
+  // console.log ('data for query: '+ root, depth, maxChildren)
   let data = tree.query(root, depth, maxChildren);
 
   let nodes = cluster.nodes(data);
   let links = cluster.links(nodes);
+
+  // console.log(nodes)
 
   let link = svg.selectAll('.link')
     .data(links)
@@ -99,6 +93,9 @@ function drawTree(notes) {
     .attr('class', 'node')
     .attr('transform', function(d) {
       return `translate(${d.y},${d.x})`;
+    }).on('click', function(d) {
+      drawTree(apinotes, d.name)
+      console.log('clicked '+ d.name)
     });
 
   node.append('circle')
