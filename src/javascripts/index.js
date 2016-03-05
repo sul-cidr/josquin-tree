@@ -6,6 +6,8 @@ import $ from 'jquery';
 import d3 from 'd3';
 import SuffixTree from 'suffix-tree';
 
+window.d3 = d3;
+
 // load sample data from files
 import raw from './data/notes_JosSongs.json';
 
