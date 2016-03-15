@@ -58,6 +58,7 @@ function loadData() {
 function drawTree(notes, start=null) {
   // console.log('drawTree() start', start)
   let tree = new SuffixTree(notes);
+  // console.log('tree', tree)
   var root = ''
   $('.count').text(`${apinotes.length.toLocaleString()} notes`)
 
@@ -73,7 +74,7 @@ function drawTree(notes, start=null) {
 
   // console.log ('data for query: '+ root, depth, maxChildren)
   let data = tree.query(root, depth, maxChildren);
-
+  console.log('data',data)
   let nodes = cluster.nodes(data);
   let links = cluster.links(nodes);
 
