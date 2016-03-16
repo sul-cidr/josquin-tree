@@ -9,26 +9,45 @@ import SuffixTree from 'suffix-tree';
 window.d3 = d3;
 
 // load sample data from files
-import raw from './data/notes_JosSongs.json';
+import rawA from './data/notes_JosSongs.json';
+import rawB from './data/notes_OckSongs.json';
 
-var apitree = ''
-var apinotes = new Array;
+var apitreeA = ''
+var apitreeB = ''
+var apinotesA = new Array;
+var apinotesB = new Array;
+var notesSet = ''
+var svgSet = ''
+var counterClass = ''
 
-function loadApiSample() {
-  for(let r of raw) {
+function loadApiSampleA() {
+  for(let r of rawA) {
     for(let f of r.features.pitch) {
       for(let p of f) {
         // console.log(p)
-        apinotes.push(p)
+        apinotesA.push(p)
       }
-      apinotes.push("X")
+      apinotesA.push("X")
     }
   }
-  drawTree(apinotes)
+  drawTree("A", apinotesA)
 }
 
-let w = 1000;
-let h = 1000;
+function loadApiSampleB() {
+  for(let r of rawB) {
+    for(let f of r.features.pitch) {
+      for(let p of f) {
+        // console.log(p)
+        apinotesB.push(p)
+      }
+      apinotesB.push("X")
+    }
+  }
+  drawTree("B", apinotesB)
+}
+
+let w = 650;
+let h = 700;
 
 let cluster = d3.layout.cluster()
   .size([h, w-220]);
@@ -38,13 +57,35 @@ let diagonal = d3.svg.diagonal()
     return [d.y, d.x];
   });
 
-let svg = d3.select('#root')
+var svgA = d3.select('#rootA')
   .append('svg')
   .attr('id', 'tree')
   .attr('width', w)
   .attr('height', h)
   .append('g')
-  .attr('transform', 'translate(60,0)');
+  .attr('transform', 'translate(45,0)');
+
+var svgB = d3.select('#rootB')
+  .append('svg')
+  .attr('id', 'tree')
+  .attr('width', w)
+  .attr('height', h)
+  .append('g')
+  .attr('transform', 'translate(45,0)');
+
+function scaleNode(val,range) {
+  let s = d3.scale.linear()
+    .domain(range)
+    .range([3,15]);
+  return s(val);
+}
+
+function scaleText(val,range) {
+  let s = d3.scale.linear()
+    .domain(range)
+    .range([12,20]);
+  return s(val);
+}
 
 function loadData() {
   let c = $('select[name="composer"]').val()
@@ -55,14 +96,25 @@ function loadData() {
   console.log('from ' + url)
 }
 
-function drawTree(notes, start=null) {
-  // console.log('drawTree() start', start)
+function drawTree(set, notes, start=null) {
+  // console.log(set)
+  if(set == "A"){
+    svgSet = svgA
+    notesSet = apinotesA
+    counterClass = '.countA'
+  } else {
+    svgSet = svgB
+    notesSet = apinotesB
+    counterClass = '.countB'
+  }
+  // console.log('svgSet, notesSet', svgSet, notesSet)
   let tree = new SuffixTree(notes);
   // console.log('tree', tree)
   var root = ''
-  $('.count').text(`${apinotes.length.toLocaleString()} notes`)
+  $(counterClass).text(`${notesSet.length.toLocaleString()} notes`)
 
-  svg.text('');
+  eval(svgSet).text('');
+  // svgA.text('');
   if(start == null) {
     root = $('input[name="root"]').val();
   } else {
@@ -74,52 +126,74 @@ function drawTree(notes, start=null) {
 
   // console.log ('data for query: '+ root, depth, maxChildren)
   let data = tree.query(root, depth, maxChildren);
-  console.log('data',data)
   let nodes = cluster.nodes(data);
   let links = cluster.links(nodes);
+  // console.log('nodes',nodes)
 
-  // console.log(nodes)
+  var maxCount = d3.max(nodes, function(d){return d.count});
+  var minCount = d3.min(nodes, function(d){return d.count});
+  // console.log('min, max of data: ',minCount,maxCount)
 
-  let link = svg.selectAll('.link')
+  let link = svgSet.selectAll('.link')
+  // let link = svgA.selectAll('.link')
     .data(links)
     .enter()
     .append('path')
     .attr('class', 'link')
     .attr('d', diagonal);
 
-  let node = svg.selectAll('.node')
+  let node = svgSet.selectAll('.node')
+  // let node = svgA.selectAll('.node')
     .data(nodes)
     .enter()
     .append('g')
     .attr('class', 'node')
     .attr('transform', function(d) {
       return `translate(${d.y},${d.x})`;
-    }).on('click', function(d) {
-      drawTree(apinotes, d.name)
+    })
+    .on('click', function(d) {
+      console.log('d siblings',d.parent.children)
+      window.n = d.parent.children
+      drawTree(set, notesSet, d.name)
       console.log('clicked '+ d.name)
     });
 
   node.append('circle')
-    .attr('r', 4);
+    .attr('r', function(d) {
+      return scaleNode(d.count,[minCount,maxCount]);
+    })
+    // .attr('fill','#993333');
+    .attr('fill',function() {
+      // console.log(counterClass)
+      return counterClass === '.countA' ? '#993333' : '#009900'
+    });
 
   node.append('text')
     .attr('dx', function(d) {
-      return d.children ? -8 : 8;
+      // console.log(d)
+      return d.depth == 0 ? -2 : d.children ? -18 : -8;
+      // return d.children ? -18 : -8;
     })
-    .attr('dy', 3)
-    .classed('leaf', function(d) {
+    .attr('dy', -3)
+    .style("font-size", function(d) {
+      // scaleText(d.count,[minCount,maxCount]) //+'px'
+      return d.depth == 0 ? 30 : scaleText(d.count,[minCount,maxCount]) //+'px'
+    })
+    .classed('leaf-text', function(d) {
       return !d.children;
     })
     .html(function(d) {
-      return `${d.name} (${d.count.toLocaleString()})`;
+      return  d.depth == 0 ? `${d.name}` : `${d.name} (${d.count.toLocaleString()})`;
     });
 
 };
 
 $('#b_data').click(loadData);
 $('#b_render').click(function(){
-  drawTree(apinotes);
+  drawTree(notesSet);
+  // drawTree(apinotes);
 })
 
-loadApiSample();
+loadApiSampleA();
+loadApiSampleB();
 // loadData();

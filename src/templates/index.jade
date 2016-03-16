@@ -9,7 +9,25 @@ html(lang="en")
 
     #nav
 
-      h4.count
+      form.form-render
+
+        .form-group
+          label Root Note
+          input.form-control.input-sm(name="root", value="C")
+
+        .form-group
+          label Tree Depth
+          input.form-control.input-sm(name="depth", value="2")
+
+        .form-group
+          label Max Children
+          input.form-control.input-sm(name="max-children", value="6")
+
+      button.btn.btn-primary#b_render Render Tree(s)
+
+    #rootA
+      h1 Selection A
+      h4.countA
 
       form.form-data
 
@@ -25,7 +43,7 @@ html(lang="en")
             option(value="Gas") Gaspar
             option(value="Isa") Isaac
             option(value="Jap") Japart
-            option(value="Jos") Josquin
+            option(value="Jos" "selected") Josquin
             option(value="Joa") Josquin (secure)
             option(value="Job") Josquin (not secure)
             option(value="Rue") La Rue
@@ -44,28 +62,48 @@ html(lang="en")
             option(value="") All
             option(value="masses") Masses
             option(value="motets") Motets
-            option(value="songs") Songs
+            option(value="songs" "selected") Songs
 
       button.btn.btn-primary#b_data Load Data
 
-      hr
+    #rootB
+      h1 Selection B
+      h4.countB
 
-      form.form-render
-
-        .form-group
-          label Root Note
-          input.form-control.input-sm(name="root", value="C")
+      form.form-data
 
         .form-group
-          label Tree Depth
-          input.form-control.input-sm(name="depth", value="2")
+          label Composer
+          select.form-control.input-sm(type="select", name="composer")
+            option(value="Agr" ) Agricola
+            option(value="Ano") Anonymous
+            option(value="Bru") Brumel
+            option(value="Bus") Busnoys
+            option(value="Com") Compere
+            option(value="Duf") Du Fay
+            option(value="Gas") Gaspar
+            option(value="Isa") Isaac
+            option(value="Jap") Japart
+            option(value="Jos") Josquin
+            option(value="Joa") Josquin (secure)
+            option(value="Job") Josquin (not secure)
+            option(value="Rue") La Rue
+            option(value="Mar") Martini
+            option(value="Mou") Mouton
+            option(value="Obr") Obrecht
+            option(value="Ock" "selected") Ockeghem
+            option(value="Ort") de Orto
+            option(value="Pip") Pipelare
+            option(value="Reg") Regis
+            option(value="Tin") Tinctoris
 
         .form-group
-          label Max Children
-          input.form-control.input-sm(name="max-children", value="6")
+          label Genre
+          select.form-control.input-sm(name="genre", id="genre_select")
+            option(value="") All
+            option(value="masses") Masses
+            option(value="motets") Motets
+            option(value="songs" "selected") Songs
 
-      button.btn.btn-primary#b_render Render Tree
-
-    #root
-
+      button.btn.btn-primary#b_data Load Data
     script(src="script.js")
