@@ -102,7 +102,7 @@ function drawTree(set, notes, start=null) {
     svgSet = svgA
     notesSet = apinotesA
     counterClass = '.countA'
-  } else {
+  } else if(set == "B"){
     svgSet = svgB
     notesSet = apinotesB
     counterClass = '.countB'
@@ -190,10 +190,12 @@ function drawTree(set, notes, start=null) {
 
 $('#b_data').click(loadData);
 $('#b_render').click(function(){
-  drawTree(notesSet);
+  console.log('render:click',$('input[name="root"]').val())
+  drawTree("A",notesSet,$('input[name="root"]').val());
+  drawTree("B",notesSet,$('input[name="root"]').val());
   // drawTree(apinotes);
 })
-
+//set, notes, start=null
 loadApiSampleA();
 loadApiSampleB();
 // loadData();
