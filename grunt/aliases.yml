@@ -1,5 +1,6 @@
 
 compile:
+  - jade
   - browserify
   - less
 

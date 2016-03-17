@@ -1,4 +1,7 @@
 
+__pycache__
+
 /node_modules
 /_site
 /.grunt
+/env
