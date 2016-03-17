@@ -23,7 +23,13 @@ html(lang="en")
           label Max Children
           input.form-control.input-sm(name="max-children", value="6")
 
+        .form-group
+            label
+            input(type="checkbox" id="rcheck" name="reverse")
+            |  Reverse
+
       button.btn.btn-primary#b_render Render Tree(s)
+
 
     #rootA
       h1 Selection A
@@ -33,7 +39,7 @@ html(lang="en")
 
         .form-group
           label Composer
-          select.form-control.input-sm(type="select", name="composer")
+          select.form-control.input-sm(type="select", name="composer", id="composer_A")
             option(value="Agr") Agricola
             option(value="Ano") Anonymous
             option(value="Bru") Brumel
@@ -58,13 +64,13 @@ html(lang="en")
 
         .form-group
           label Genre
-          select.form-control.input-sm(name="genre", id="genre_select")
+          select.form-control.input-sm(type="select", name="genre", id="genre_A")
             option(value="") All
             option(value="masses") Masses
             option(value="motets") Motets
             option(value="songs" "selected") Songs
 
-      button.btn.btn-primary#b_data Load Data
+      button.btn.btn-primary.b-load(value="A") Load Data
 
     #rootB
       h1 Selection B
@@ -74,7 +80,7 @@ html(lang="en")
 
         .form-group
           label Composer
-          select.form-control.input-sm(type="select", name="composer")
+          select.form-control.input-sm(type="select", name="composer", id="composer_B")
             option(value="Agr" ) Agricola
             option(value="Ano") Anonymous
             option(value="Bru") Brumel
@@ -99,11 +105,12 @@ html(lang="en")
 
         .form-group
           label Genre
-          select.form-control.input-sm(name="genre", id="genre_select")
+          select.form-control.input-sm(type="select", name="genre", id="genre_B")
             option(value="") All
             option(value="masses") Masses
             option(value="motets") Motets
             option(value="songs" "selected") Songs
 
-      button.btn.btn-primary#b_data Load Data
+      button.btn.btn-primary.b-load(value="B") Load Data
+
     script(src="script.js")

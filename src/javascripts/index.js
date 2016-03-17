@@ -1,6 +1,8 @@
-// index.js
-// interface to load data, render tree
-// from Josquin Research Project notetree API ()
+/** index.js    D. McClure, K. Grossner
+  * interface to load data, render tree
+  * static files here;
+  * dynamic from JRP notetree API () in 'deploy' branch
+  */
 
 import $ from 'jquery';
 import d3 from 'd3';
@@ -12,13 +14,15 @@ window.d3 = d3;
 import rawA from './data/notes_JosSongs.json';
 import rawB from './data/notes_OckSongs.json';
 
-var apitreeA = ''
-var apitreeB = ''
-var apinotesA = new Array;
-var apinotesB = new Array;
-var notesSet = ''
-var svgSet = ''
-var counterClass = ''
+var apitreeA = '',
+ apitreeB = '',
+ apinotesA = new Array,
+ apinotesB = new Array,
+ notesSet = '',
+ svgSet = '',
+ counterClass = '',
+ reverseTree = '',
+ svgX = 45
 
 function loadApiSampleA() {
   for(let r of rawA) {
@@ -57,13 +61,17 @@ let diagonal = d3.svg.diagonal()
     return [d.y, d.x];
   });
 
+let diagonalR = d3.svg.diagonal()
+  .projection(function(d) {
+    return [w-d.y, d.x];
+  });
+
 var svgA = d3.select('#rootA')
   .append('svg')
   .attr('id', 'tree')
   .attr('width', w)
   .attr('height', h)
   .append('g')
-  .attr('transform', 'translate(45,0)');
 
 var svgB = d3.select('#rootB')
   .append('svg')
@@ -71,7 +79,6 @@ var svgB = d3.select('#rootB')
   .attr('width', w)
   .attr('height', h)
   .append('g')
-  .attr('transform', 'translate(45,0)');
 
 function scaleNode(val,range) {
   let s = d3.scale.linear()
@@ -87,17 +94,28 @@ function scaleText(val,range) {
   return s(val);
 }
 
-function loadData() {
-  let c = $('select[name="composer"]').val()
-  let g = $('select[name="genre"]').val()
+function loadData(selection) {
+  let c = $('select[id="composer_'+selection+'"]').val()
+  let g = $('select[id="genre_'+selection+'"]').val()
   let url = 'http://josquin.stanford.edu/cgi-bin/jrp?a=notetree&f=' + c + '&genre='
   if (g !='') {url += g} else g='all'
-  console.log('load '+ g +' data for ' + c)
-  console.log('from ' + url)
+  console.log('load '+c+' '+g+' data into graph '+selection)
+  console.log('url: ' + url)
 }
 
 function drawTree(set, notes, start=null) {
-  // console.log(set)
+  if(reverseTree) {
+    console.log(reverseTree);
+    svgX = -120;
+  } else {
+    svgX = 45;
+  }
+  svgA.attr('transform', 'translate('+svgX+',20)');
+  svgB.attr('transform', 'translate('+svgX+',20)');
+
+  var notesArr=[]
+  notesArr.push(notes)
+
   if(set == "A"){
     svgSet = svgA
     notesSet = apinotesA
@@ -107,14 +125,17 @@ function drawTree(set, notes, start=null) {
     notesSet = apinotesB
     counterClass = '.countB'
   }
-  // console.log('svgSet, notesSet', svgSet, notesSet)
-  let tree = new SuffixTree(notes);
-  // console.log('tree', tree)
+
+  if( reverseTree ) {
+    var tree = new SuffixTree(notesArr,true);
+  } else {
+    var tree = new SuffixTree(notesArr,false);
+  }
+
   var root = ''
   $(counterClass).text(`${notesSet.length.toLocaleString()} notes`)
 
   eval(svgSet).text('');
-  // svgA.text('');
   if(start == null) {
     root = $('input[name="root"]').val();
   } else {
@@ -128,28 +149,26 @@ function drawTree(set, notes, start=null) {
   let data = tree.query(root, depth, maxChildren);
   let nodes = cluster.nodes(data);
   let links = cluster.links(nodes);
-  // console.log('nodes',nodes)
 
   var maxCount = d3.max(nodes, function(d){return d.count});
   var minCount = d3.min(nodes, function(d){return d.count});
-  // console.log('min, max of data: ',minCount,maxCount)
 
   let link = svgSet.selectAll('.link')
-  // let link = svgA.selectAll('.link')
     .data(links)
     .enter()
     .append('path')
     .attr('class', 'link')
-    .attr('d', diagonal);
+    .attr('d', reverseTree ? diagonalR : diagonal);
 
   let node = svgSet.selectAll('.node')
-  // let node = svgA.selectAll('.node')
     .data(nodes)
     .enter()
     .append('g')
     .attr('class', 'node')
     .attr('transform', function(d) {
-      return `translate(${d.y},${d.x})`;
+      return reverseTree ?
+        `translate(${650-d.y},${d.x})` :
+        `translate(${d.y},${d.x})`;
     })
     .on('click', function(d) {
       console.log('d siblings',d.parent.children)
@@ -162,21 +181,18 @@ function drawTree(set, notes, start=null) {
     .attr('r', function(d) {
       return scaleNode(d.count,[minCount,maxCount]);
     })
-    // .attr('fill','#993333');
     .attr('fill',function() {
-      // console.log(counterClass)
       return counterClass === '.countA' ? '#993333' : '#009900'
     });
 
   node.append('text')
     .attr('dx', function(d) {
-      // console.log(d)
-      return d.depth == 0 ? -2 : d.children ? -18 : -8;
-      // return d.children ? -18 : -8;
+      return d.depth == 0 ? 10 : d.children ? -18 : -8;
     })
-    .attr('dy', -3)
+    .attr('dy', function(d) {
+      return d.depth == 0 ? -10 : -3;
+    })
     .style("font-size", function(d) {
-      // scaleText(d.count,[minCount,maxCount]) //+'px'
       return d.depth == 0 ? 30 : scaleText(d.count,[minCount,maxCount]) //+'px'
     })
     .classed('leaf-text', function(d) {
@@ -188,13 +204,24 @@ function drawTree(set, notes, start=null) {
 
 };
 
-$('#b_data').click(loadData);
-$('#b_render').click(function(){
-  console.log('render:click',$('input[name="root"]').val())
-  drawTree("A",notesSet,$('input[name="root"]').val());
-  drawTree("B",notesSet,$('input[name="root"]').val());
-  // drawTree(apinotes);
+$(document).ready(function() {
+  $('#rcheck').change(function (){
+    if(this.checked) {
+      reverseTree = true;
+    } else { reverseTree = false;}
+
+  })
+  $('.b-load').click(function(){
+    // console.log(this.value)
+    loadData(this.value);
+  });
+  $('#b_render').click(function(){
+    // console.log('render:click',$('input[name="root"]').val())
+    drawTree("A",notesSet,$('input[name="root"]').val());
+    drawTree("B",notesSet,$('input[name="root"]').val());
+  })
 })
+
 //set, notes, start=null
 loadApiSampleA();
 loadApiSampleB();
