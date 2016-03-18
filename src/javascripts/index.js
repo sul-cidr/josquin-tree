@@ -24,31 +24,31 @@ var apitreeA = '',
  reverseTree = '',
  svgX = 45
 
-function loadApiSampleA() {
-  for(let r of rawA) {
-    for(let f of r.features.pitch) {
-      for(let p of f) {
-        // console.log(p)
-        apinotesA.push(p)
-      }
-      apinotesA.push("X")
-    }
-  }
-  drawTree("A", apinotesA)
-}
-
-function loadApiSampleB() {
-  for(let r of rawB) {
-    for(let f of r.features.pitch) {
-      for(let p of f) {
-        // console.log(p)
-        apinotesB.push(p)
-      }
-      apinotesB.push("X")
-    }
-  }
-  drawTree("B", apinotesB)
-}
+// function loadApiSampleA() {
+//   for(let r of rawA) {
+//     for(let f of r.features.pitch) {
+//       for(let p of f) {
+//         // console.log(p)
+//         apinotesA.push(p)
+//       }
+//       apinotesA.push("X")
+//     }
+//   }
+//   drawTree("A", apinotesA)
+// }
+//
+// function loadApiSampleB() {
+//   for(let r of rawB) {
+//     for(let f of r.features.pitch) {
+//       for(let p of f) {
+//         // console.log(p)
+//         apinotesB.push(p)
+//       }
+//       apinotesB.push("X")
+//     }
+//   }
+//   drawTree("B", apinotesB)
+// }
 
 let w = 650;
 let h = 700;
@@ -97,10 +97,47 @@ function scaleText(val,range) {
 function loadData(selection) {
   let c = $('select[id="composer_'+selection+'"]').val()
   let g = $('select[id="genre_'+selection+'"]').val()
+<<<<<<< Updated upstream
   let url = 'http://josquin.stanford.edu/cgi-bin/jrp?a=notetree&f=' + c + '&genre='
   if (g !='') {url += g} else g='all'
   console.log('load '+c+' '+g+' data into graph '+selection)
   console.log('url: ' + url)
+=======
+  if(source == 'local') {
+    raw = selection == "A" ? rawA : rawB;
+    // maintain active data in sets A and B for .click behaviors
+    if(selection == "A") {apinotesA = raw} else {apinotesB = raw}
+    notes = [];
+    for(let r of raw) {
+      for(let f of r.features.pitch) {
+        for(let p of f) {
+          notes.push(p);
+        }
+        notes.push('X');
+      }
+    }
+    // console.log('local data', notes)
+    drawTree(selection, notes);
+  } else if(source == 'api') {
+    let url = 'http://josquin.stanford.edu/cgi-bin/jrp?a=notetree&f=' + c + '&genre='
+    if (g !='') {url += g} else g='all'
+    console.log('getting API data from', url);
+    d3.json(url, function(error, raw) {
+       console.log(error);
+       if(selection == "A") {apinotesA = raw} else {apinotesB = raw}
+       notes = [];
+       for(let r of raw) {
+         for(let f of r.features.pitch) {
+           for(let p of f) {
+             notes.push(p);
+           }
+           notes.push('X');
+         }
+       }
+      drawTree(selection, notes);
+     })
+  }
+>>>>>>> Stashed changes
 }
 
 function drawTree(set, notes, start=null) {
@@ -115,8 +152,13 @@ function drawTree(set, notes, start=null) {
 
   var notesArr=[]
   notesArr.push(notes)
+<<<<<<< Updated upstream
 
   if(set == "A"){
+=======
+  // console.log('notesArr', notesArr)
+  if(selection == "A"){
+>>>>>>> Stashed changes
     svgSet = svgA
     notesSet = apinotesA
     counterClass = '.countA'
@@ -150,6 +192,8 @@ function drawTree(set, notes, start=null) {
   let nodes = cluster.nodes(data);
   let links = cluster.links(nodes);
 
+  console.log('data',data)
+
   var maxCount = d3.max(nodes, function(d){return d.count});
   var minCount = d3.min(nodes, function(d){return d.count});
 
@@ -173,7 +217,8 @@ function drawTree(set, notes, start=null) {
     .on('click', function(d) {
       console.log('d siblings',d.parent.children)
       window.n = d.parent.children
-      drawTree(set, notesSet, d.name)
+      drawTree(selection, notes, d.name)
+      // drawTree(selection, notesSet, d.name)
       console.log('clicked '+ d.name)
     });
 
@@ -217,8 +262,10 @@ $(document).ready(function() {
   });
   $('#b_render').click(function(){
     // console.log('render:click',$('input[name="root"]').val())
-    drawTree("A",notesSet,$('input[name="root"]').val());
-    drawTree("B",notesSet,$('input[name="root"]').val());
+    drawTree("A",apinotesA,$('input[name="root"]').val());
+    drawTree("B",apinotesB,$('input[name="root"]').val());
+    // drawTree("A",notesSet,$('input[name="root"]').val());
+    // drawTree("B",notesSet,$('input[name="root"]').val());
   })
 })
 
