@@ -74,6 +74,7 @@ function scaleText(val,range) {
     .range([12,20]);
   return s(val);
 }
+
 /**
   * selection = 'A' or 'B'; source = 'local' or 'api'
   */
@@ -101,32 +102,43 @@ function loadData(selection, source) {
     if (g !='') {url += g} else g='all'
     console.log('load '+c+' '+g+' data into graph '+selection)
     console.log('getting API data from', url);
-    // load and parse data from API
     d3.json(url, function(error, raw) {
-       console.log(error);
-       notes = [];
-       for(let r of raw) {
-         for(let f of r.features.pitch) {
-           for(let p of f) {
-             notes.push(p);
-           }
-           notes.push('X');
+      console.log(error);
+      notes = [];
+      for(let r of raw) {
+       for(let f of r.features.pitch) {
+         for(let p of f) {
+           notes.push(p);
          }
+         notes.push('X');
        }
-       selection == 'A' ? apinotesA = notes : apinotesB = notes;
+      }
+      selection == 'A' ? apinotesA = notes : apinotesB = notes;
       drawTree(selection, notes);
      })
   }
 }
 
-function drawTree(set, notes, start=null) {
-  var root = ''
+var root = ''
 
-  if(set == "A"){
+function drawTree(selection, notes, start=null) {
+  if(reverseTree) {
+    console.log(reverseTree);
+    svgX = -120;
+  } else {
+    svgX = 45;
+  }
+  svgA.attr('transform', 'translate('+svgX+',20)');
+  svgB.attr('transform', 'translate('+svgX+',20)');
+
+  var notesArr=[]
+  notesArr.push(notes)
+
+  if(selection == "A"){
     svgSet = svgA
     notesSet = apinotesA
     counterClass = '.countA'
-  } else if(set == "B"){
+  } else if(selection == "B"){
     svgSet = svgB
     notesSet = apinotesB
     counterClass = '.countB'
@@ -147,9 +159,9 @@ function drawTree(set, notes, start=null) {
   // build suffix-tree
   if( reverseTree ) {
     var tree = new SuffixTree(notesArr,true);
-  } else {
+    } else {
     var tree = new SuffixTree(notesArr,false);
-  }
+    }
 
   // display counters
   $(counterClass).text(`${notesSet.length.toLocaleString()} notes`)
@@ -158,7 +170,7 @@ function drawTree(set, notes, start=null) {
 
   if(start == null) {
     root = $('input[name="root"]').val();
-  } else {
+    } else {
     $('input[name="root"]').val(start)
     root = start;
   }
@@ -241,7 +253,7 @@ $(document).ready(function() {
 })
 
 /**
-  * initial load
+  * initial load and draw
   */
 loadData('A',datasource);
 loadData('B',datasource);
