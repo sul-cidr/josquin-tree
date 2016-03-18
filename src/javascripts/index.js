@@ -1,54 +1,35 @@
 /** index.js    D. McClure, K. Grossner
-  * interface to load data, render tree
-  * static files here;
-  * dynamic from JRP notetree API () in 'deploy' branch
+  * interface to load static or API data, render trees
   */
 
 import $ from 'jquery';
 import d3 from 'd3';
+// linked module from https://github.com/davidmcclure/suffix-tree
 import SuffixTree from 'suffix-tree';
-
+// expose d3 functions like selectAll
 window.d3 = d3;
 
-// load sample data from files
+// load sample data from files regardless
 import rawA from './data/notes_JosSongs.json';
 import rawB from './data/notes_OckSongs.json';
 
-var apitreeA = '',
- apitreeB = '',
- apinotesA = new Array,
- apinotesB = new Array,
- notesSet = '',
- svgSet = '',
- counterClass = '',
- reverseTree = '',
- svgX = 45
+/**
+  * set data source
+  */
+var datasource = 'local' // or 'api'
 
-// function loadApiSampleA() {
-//   for(let r of rawA) {
-//     for(let f of r.features.pitch) {
-//       for(let p of f) {
-//         // console.log(p)
-//         apinotesA.push(p)
-//       }
-//       apinotesA.push("X")
-//     }
-//   }
-//   drawTree("A", apinotesA)
-// }
-//
-// function loadApiSampleB() {
-//   for(let r of rawB) {
-//     for(let f of r.features.pitch) {
-//       for(let p of f) {
-//         // console.log(p)
-//         apinotesB.push(p)
-//       }
-//       apinotesB.push("X")
-//     }
-//   }
-//   drawTree("B", apinotesB)
-// }
+var root = '',
+    apitreeA = '',
+    apitreeB = '',
+    apinotesA = new Array,
+    apinotesB = new Array,
+    notes = '',
+    notesSet = '',
+    svgSet = '',
+    counterClass = '',
+    reverseTree = '',
+    svgX = 45,
+    raw = ''
 
 let w = 650;
 let h = 700;
@@ -93,20 +74,15 @@ function scaleText(val,range) {
     .range([12,20]);
   return s(val);
 }
-
-function loadData(selection) {
+/**
+  * selection = 'A' or 'B'; source = 'local' or 'api'
+  */
+function loadData(selection, source) {
   let c = $('select[id="composer_'+selection+'"]').val()
   let g = $('select[id="genre_'+selection+'"]').val()
-<<<<<<< Updated upstream
-  let url = 'http://josquin.stanford.edu/cgi-bin/jrp?a=notetree&f=' + c + '&genre='
-  if (g !='') {url += g} else g='all'
-  console.log('load '+c+' '+g+' data into graph '+selection)
-  console.log('url: ' + url)
-=======
   if(source == 'local') {
+    // assign appropriate file data to raw
     raw = selection == "A" ? rawA : rawB;
-    // maintain active data in sets A and B for .click behaviors
-    if(selection == "A") {apinotesA = raw} else {apinotesB = raw}
     notes = [];
     for(let r of raw) {
       for(let f of r.features.pitch) {
@@ -116,15 +92,18 @@ function loadData(selection) {
         notes.push('X');
       }
     }
-    // console.log('local data', notes)
+    // maintain current local data for .click behaviors
+    selection == 'A' ? apinotesA = notes : apinotesB = notes;
+    // render selection A or B
     drawTree(selection, notes);
   } else if(source == 'api') {
     let url = 'http://josquin.stanford.edu/cgi-bin/jrp?a=notetree&f=' + c + '&genre='
     if (g !='') {url += g} else g='all'
+    console.log('load '+c+' '+g+' data into graph '+selection)
     console.log('getting API data from', url);
+    // load and parse data from API
     d3.json(url, function(error, raw) {
        console.log(error);
-       if(selection == "A") {apinotesA = raw} else {apinotesB = raw}
        notes = [];
        for(let r of raw) {
          for(let f of r.features.pitch) {
@@ -134,31 +113,16 @@ function loadData(selection) {
            notes.push('X');
          }
        }
+       selection == 'A' ? apinotesA = notes : apinotesB = notes;
       drawTree(selection, notes);
      })
   }
->>>>>>> Stashed changes
 }
 
 function drawTree(set, notes, start=null) {
-  if(reverseTree) {
-    console.log(reverseTree);
-    svgX = -120;
-  } else {
-    svgX = 45;
-  }
-  svgA.attr('transform', 'translate('+svgX+',20)');
-  svgB.attr('transform', 'translate('+svgX+',20)');
-
-  var notesArr=[]
-  notesArr.push(notes)
-<<<<<<< Updated upstream
+  var root = ''
 
   if(set == "A"){
-=======
-  // console.log('notesArr', notesArr)
-  if(selection == "A"){
->>>>>>> Stashed changes
     svgSet = svgA
     notesSet = apinotesA
     counterClass = '.countA'
@@ -168,32 +132,45 @@ function drawTree(set, notes, start=null) {
     counterClass = '.countB'
   }
 
+  // set horizontal position
+  if(reverseTree) {
+    svgX = -120;
+  } else {
+    svgX = 45;
+  }
+  svgA.attr('transform', 'translate('+svgX+',20)');
+  svgB.attr('transform', 'translate('+svgX+',20)');
+
+  var notesArr=[]
+  notesArr.push(notes)
+
+  // build suffix-tree
   if( reverseTree ) {
     var tree = new SuffixTree(notesArr,true);
   } else {
     var tree = new SuffixTree(notesArr,false);
   }
 
-  var root = ''
+  // display counters
   $(counterClass).text(`${notesSet.length.toLocaleString()} notes`)
 
   eval(svgSet).text('');
+
   if(start == null) {
     root = $('input[name="root"]').val();
   } else {
     $('input[name="root"]').val(start)
     root = start;
   }
+
   let depth = Number($('input[name="depth"]').val());
   let maxChildren = Number($('input[name="max-children"]').val());
 
-  // console.log ('data for query: '+ root, depth, maxChildren)
   let data = tree.query(root, depth, maxChildren);
   let nodes = cluster.nodes(data);
   let links = cluster.links(nodes);
 
-  console.log('data',data)
-
+  // find min/max counts used to scale nodes and node labels
   var maxCount = d3.max(nodes, function(d){return d.count});
   var minCount = d3.min(nodes, function(d){return d.count});
 
@@ -215,11 +192,8 @@ function drawTree(set, notes, start=null) {
         `translate(${d.y},${d.x})`;
     })
     .on('click', function(d) {
-      console.log('d siblings',d.parent.children)
       window.n = d.parent.children
-      drawTree(selection, notes, d.name)
-      // drawTree(selection, notesSet, d.name)
-      console.log('clicked '+ d.name)
+      drawTree(set, notes, d.name)
     });
 
   node.append('circle')
@@ -261,15 +235,13 @@ $(document).ready(function() {
     loadData(this.value);
   });
   $('#b_render').click(function(){
-    // console.log('render:click',$('input[name="root"]').val())
     drawTree("A",apinotesA,$('input[name="root"]').val());
     drawTree("B",apinotesB,$('input[name="root"]').val());
-    // drawTree("A",notesSet,$('input[name="root"]').val());
-    // drawTree("B",notesSet,$('input[name="root"]').val());
   })
 })
 
-//set, notes, start=null
-loadApiSampleA();
-loadApiSampleB();
-// loadData();
+/**
+  * initial load
+  */
+loadData('A',datasource);
+loadData('B',datasource);
