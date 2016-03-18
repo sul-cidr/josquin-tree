@@ -14,15 +14,20 @@ window.d3 = d3;
 import rawA from './data/notes_JosSongs.json';
 import rawB from './data/notes_OckSongs.json';
 
-var apitreeA = '',
- apitreeB = '',
- apinotesA = new Array,
- apinotesB = new Array,
- notesSet = '',
- svgSet = '',
- counterClass = '',
- reverseTree = '',
- svgX = 45
+var fs = require('fs');
+
+var root = '',
+    apitreeA = '',
+    apitreeB = '',
+    apinotesA = new Array,
+    apinotesB = new Array,
+    notes = '',
+    notesSet = '',
+    svgSet = '',
+    counterClass = '',
+    reverseTree = '',
+    svgX = 45,
+    raw = ''
 
 function loadApiSampleA() {
   for(let r of rawA) {
@@ -94,16 +99,43 @@ function scaleText(val,range) {
   return s(val);
 }
 
-function loadData(selection) {
+function loadData(selection, source) {
   let c = $('select[id="composer_'+selection+'"]').val()
   let g = $('select[id="genre_'+selection+'"]').val()
-  let url = 'http://josquin.stanford.edu/cgi-bin/jrp?a=notetree&f=' + c + '&genre='
-  if (g !='') {url += g} else g='all'
-  console.log('load '+c+' '+g+' data into graph '+selection)
-  console.log('url: ' + url)
+  if(source == 'local') {
+    raw = selection == "A" ? rawA : rawB;
+    notes = [];
+    for(let r of raw) {
+      for(let f of r.features.pitch) {
+        for(let p of f) {
+          notes.push(p);
+        }
+        notes.push('X');
+      }
+    }
+    // console.log('local data', notes)
+    drawTree(selection, notes);
+  } else if(source == 'api') {
+    let url = 'http://josquin.stanford.edu/cgi-bin/jrp?a=notetree&f=' + c + '&genre='
+    if (g !='') {url += g} else g='all'
+    console.log('getting API data from', url);
+    d3.json(url, function(error, raw) {
+       console.log(error);
+       notes = [];
+       for(let r of raw) {
+         for(let f of r.features.pitch) {
+           for(let p of f) {
+             notes.push(p);
+           }
+           notes.push('X');
+         }
+       }
+      drawTree(selection, notes);
+     })
+  }
 }
 
-function drawTree(set, notes, start=null) {
+function drawTree(selection, notes, start=null) {
   if(reverseTree) {
     console.log(reverseTree);
     svgX = -120;
@@ -116,11 +148,11 @@ function drawTree(set, notes, start=null) {
   var notesArr=[]
   notesArr.push(notes)
 
-  if(set == "A"){
+  if(selection == "A"){
     svgSet = svgA
     notesSet = apinotesA
     counterClass = '.countA'
-  } else if(set == "B"){
+  } else if(selection == "B"){
     svgSet = svgB
     notesSet = apinotesB
     counterClass = '.countB'
@@ -128,20 +160,20 @@ function drawTree(set, notes, start=null) {
 
   if( reverseTree ) {
     var tree = new SuffixTree(notesArr,true);
-  } else {
+    } else {
     var tree = new SuffixTree(notesArr,false);
-  }
+    }
 
-  var root = ''
   $(counterClass).text(`${notesSet.length.toLocaleString()} notes`)
-
   eval(svgSet).text('');
+
   if(start == null) {
     root = $('input[name="root"]').val();
-  } else {
+    } else {
     $('input[name="root"]').val(start)
     root = start;
   }
+
   let depth = Number($('input[name="depth"]').val());
   let maxChildren = Number($('input[name="max-children"]').val());
 
@@ -222,7 +254,5 @@ $(document).ready(function() {
   })
 })
 
-//set, notes, start=null
-loadApiSampleA();
-loadApiSampleB();
-// loadData();
+loadData('A', 'local'); // ['local'|'api']
+loadData('B', 'local'); // ['local'|'api']
