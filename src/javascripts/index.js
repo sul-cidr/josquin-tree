@@ -29,7 +29,8 @@ var root = '',
     counterClass = '',
     reverseTree = '',
     svgX = 45,
-    raw = ''
+    raw = '',
+    newRoot=[]
 
 let w = 650;
 let h = 700;
@@ -173,6 +174,7 @@ function drawTree(selection, notes, start=null) {
     } else {
     $('input[name="root"]').val(start)
     root = start;
+    console.log('start(root)', root)
   }
 
   let depth = Number($('input[name="depth"]').val());
@@ -204,8 +206,17 @@ function drawTree(selection, notes, start=null) {
         `translate(${d.y},${d.x})`;
     })
     .on('click', function(d) {
-      window.n = d.parent.children
-      drawTree(set, notes, d.name)
+      newRoot = [];
+      window.n = d;
+      if (d3.event.shiftKey) {
+        let rooty = recurseParents(d).reverse();
+        console.log('rooty', rooty.join(','))
+        drawTree(selection, notes, rooty.join(','));
+      } else if (d3.event.altKey) {
+        console.log('altKey');
+      } else {
+        drawTree(selection, notes, d.name);
+      }
     });
 
   node.append('circle')
@@ -234,6 +245,17 @@ function drawTree(selection, notes, start=null) {
     });
 
 };
+
+function recurseParents(node) {
+  if(node) {
+    // console.log('parent name', node.name)
+    newRoot.push(node.name)
+    // console.log('newRoot', newRoot)
+    recurseParents(node.parent)
+  }
+  // console.log('newRoot', newRoot)
+  return newRoot;
+}
 
 $(document).ready(function() {
   $('#rcheck').change(function (){
