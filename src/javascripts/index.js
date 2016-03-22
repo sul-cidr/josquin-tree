@@ -174,14 +174,15 @@ function drawTree(selection, notes, start=null) {
     } else {
     $('input[name="root"]').val(start)
     root = start;
-    console.log('start(root)', root)
+    // console.log('start(root)', root)
   }
 
   let depth = Number($('input[name="depth"]').val());
   let maxChildren = Number($('input[name="max-children"]').val());
+  let minCountDisplay = Number($('input[name="min-count"]').val());
 
-  let data = tree.query(root, depth, maxChildren);
-  let nodes = cluster.nodes(data);
+  let data = tree.query(root, depth, maxChildren, minCountDisplay);
+  let nodes = cluster.nodes(data).filter(function(d){return d.depth == 0 || d.count>2});
   let links = cluster.links(nodes);
 
   // find min/max counts used to scale nodes and node labels
@@ -224,7 +225,7 @@ function drawTree(selection, notes, start=null) {
       return scaleNode(d.count,[minCount,maxCount]);
     })
     .attr('fill',function() {
-      return counterClass === '.countA' ? '#993333' : '#009900'
+      return counterClass === '.countA' ? '#a25436' : '#2b75af'
     });
 
   node.append('text')
