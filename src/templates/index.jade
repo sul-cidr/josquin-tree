@@ -31,6 +31,10 @@ html(lang="en")
             label
             input(type="checkbox" id="rcheck" name="reverse")
             |  Reverse
+            select.form-control.imput-sm(type="select", name="count", id="cnt_display")
+              option(value="Raw" "selected") Raw count
+              option(value="Pct") Percent
+              option(value="None") None
 
       button.btn.btn-primary#b_render Render Tree(s)
 

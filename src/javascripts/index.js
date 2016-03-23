@@ -33,7 +33,7 @@ var root = '',
     newRoot=[]
 
 let w = 650;
-let h = 700;
+let h = 720;
 
 let cluster = d3.layout.cluster()
   .size([h, w-220]);
@@ -129,8 +129,8 @@ function drawTree(selection, notes, start=null) {
   } else {
     svgX = 45;
   }
-  svgA.attr('transform', 'translate('+svgX+',20)');
-  svgB.attr('transform', 'translate('+svgX+',20)');
+  svgA.attr('transform', 'translate('+svgX+',0)');
+  svgB.attr('transform', 'translate('+svgX+',0)');
 
   var notesArr=[]
   notesArr.push(notes)
@@ -145,14 +145,14 @@ function drawTree(selection, notes, start=null) {
     counterClass = '.countB'
   }
 
-  // set horizontal position
-  if(reverseTree) {
-    svgX = -120;
-  } else {
-    svgX = 45;
-  }
-  svgA.attr('transform', 'translate('+svgX+',20)');
-  svgB.attr('transform', 'translate('+svgX+',20)');
+  // // set horizontal position
+  // if(reverseTree) {
+  //   svgX = -120;
+  // } else {
+  //   svgX = 45;
+  // }
+  // svgA.attr('transform', 'translate('+svgX+',20)');
+  // svgB.attr('transform', 'translate('+svgX+',20)');
 
   var notesArr=[]
   notesArr.push(notes)
@@ -180,11 +180,13 @@ function drawTree(selection, notes, start=null) {
   let depth = Number($('input[name="depth"]').val());
   let maxChildren = Number($('input[name="max-children"]').val());
   let minCountDisplay = Number($('input[name="min-count"]').val());
+  let countDisplay = $('select[name="count"]').val();
 
   let data = tree.query(root, depth, maxChildren, minCountDisplay);
-  let nodes = cluster.nodes(data).filter(function(d){return d.depth == 0 || d.count>2});
+  let nodes = cluster.nodes(data);
   let links = cluster.links(nodes);
-
+  window.l = links[7]
+  console.log('a link', links[7].source,links[7].target)
   // find min/max counts used to scale nodes and node labels
   var maxCount = d3.max(nodes, function(d){return d.count});
   var minCount = d3.min(nodes, function(d){return d.count});
@@ -194,7 +196,8 @@ function drawTree(selection, notes, start=null) {
     .enter()
     .append('path')
     .attr('class', 'link')
-    .attr('d', reverseTree ? diagonalR : diagonal);
+    .attr('d', reverseTree ? diagonalR : diagonal)
+    .attr('stroke-width', 4)
 
   let node = svgSet.selectAll('.node')
     .data(nodes)
@@ -228,23 +231,58 @@ function drawTree(selection, notes, start=null) {
       return counterClass === '.countA' ? '#a25436' : '#2b75af'
     });
 
+  // note letters
   node.append('text')
+    .attr('x', 0)
+    .attr('y', 0)
     .attr('dx', function(d) {
       return d.depth == 0 ? 10 : d.children ? -18 : -8;
     })
+    // .attr('dy', depth == 0 ? -10 : )
     .attr('dy', function(d) {
-      return d.depth == 0 ? -10 : -3;
+      return d.depth == 0 ? -10 : ".35em";
     })
     .style("font-size", function(d) {
       return d.depth == 0 ? 30 : scaleText(d.count,[minCount,maxCount]) //+'px'
     })
+    .style("text-anchor","end")
     .classed('leaf-text', function(d) {
       return !d.children;
     })
     .html(function(d) {
-      return  d.depth == 0 ? `${d.name}` : `${d.name} (${d.count.toLocaleString()})`;
-    });
+      return `${d.name}`;
+    })
 
+  // counts
+  node.append('text')
+    .attr('dx', function(d) {
+      return d.depth == 0 ? 10 : d.children ? 30 : 12;
+    })
+    .attr('dy', ".35em")
+    // .attr('dy', function(d) {
+    //   return d.depth == 0 ? -10 : 3;
+    // })
+    .style("font-size", function(d) {
+      return d.depth == 0 ? 30 : scaleText(d.count,[minCount,maxCount]) //+'px'
+    })
+    .style("text-anchor","start")
+    .classed('leaf-text', function(d) {
+      return !d.children;
+    })
+    .html(function(d) {
+      if (d.depth == 0 || countDisplay == 'None') {
+        return '';
+      } else if (countDisplay == 'Raw') {
+        return `${d.count.toLocaleString()}`;
+      } else if (countDisplay == 'Pct') {
+        if (d.depth == 2) {
+          return `${(d.count/d.parent.count).toFixed(2).toLocaleString()}`;
+        } else if (d.depth == 1) {
+          let total = d3.sum(d.parent.children, function(d){return d.count})
+          return `${(d.count/total).toLocaleString()}`;
+        }
+      };
+    })
 };
 
 function recurseParents(node) {
