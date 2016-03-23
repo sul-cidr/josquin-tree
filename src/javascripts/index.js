@@ -145,15 +145,6 @@ function drawTree(selection, notes, start=null) {
     counterClass = '.countB'
   }
 
-  // // set horizontal position
-  // if(reverseTree) {
-  //   svgX = -120;
-  // } else {
-  //   svgX = 45;
-  // }
-  // svgA.attr('transform', 'translate('+svgX+',20)');
-  // svgB.attr('transform', 'translate('+svgX+',20)');
-
   var notesArr=[]
   notesArr.push(notes)
 
@@ -180,13 +171,14 @@ function drawTree(selection, notes, start=null) {
   let depth = Number($('input[name="depth"]').val());
   let maxChildren = Number($('input[name="max-children"]').val());
   let minCountDisplay = Number($('input[name="min-count"]').val());
-  let countDisplay = $('select[name="count"]').val();
+  let countDisplay = $('input[name="count_display"]:checked').val();
+  // console.log('countDisplay',countDisplay)
 
   let data = tree.query(root, depth, maxChildren, minCountDisplay);
   let nodes = cluster.nodes(data);
   let links = cluster.links(nodes);
   window.l = links[7]
-  console.log('a link', links[7].source,links[7].target)
+  // console.log('a link', links[7].source,links[7].target)
   // find min/max counts used to scale nodes and node labels
   var maxCount = d3.max(nodes, function(d){return d.count});
   var minCount = d3.min(nodes, function(d){return d.count});
@@ -270,11 +262,11 @@ function drawTree(selection, notes, start=null) {
       return !d.children;
     })
     .html(function(d) {
-      if (d.depth == 0 || countDisplay == 'None') {
+      if (d.depth == 0 || countDisplay == 'none') {
         return '';
-      } else if (countDisplay == 'Raw') {
+      } else if (countDisplay == 'raw') {
         return `${d.count.toLocaleString()}`;
-      } else if (countDisplay == 'Pct') {
+      } else if (countDisplay == 'pct') {
         if (d.depth == 2) {
           return `${(d.count/d.parent.count).toFixed(2).toLocaleString()}`;
         } else if (d.depth == 1) {

@@ -31,10 +31,20 @@ html(lang="en")
             label
             input(type="checkbox" id="rcheck" name="reverse")
             |  Reverse
-            select.form-control.imput-sm(type="select", name="count", id="cnt_display")
-              option(value="Raw" "selected") Raw count
-              option(value="Pct") Percent
-              option(value="None") None
+
+        h4 Count Display
+        form(role="form")
+        div#radio_buttons.form-group
+          label.radio-inline
+          input(type="radio", name="count_display", value="raw", checked="")
+          |  Raw
+          label.radio-inline
+          input(type="radio", name="count_display", value="pct")
+          |  Pct
+          label.radio-inline
+          input(type="radio", name="count_display", value="none")
+          |  None
+
 
       button.btn.btn-primary#b_render Render Tree(s)
 
