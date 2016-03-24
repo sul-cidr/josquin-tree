@@ -82,8 +82,9 @@ function scaleText(val,range) {
 function loadData(selection, source) {
   let c = $('select[id="composer_'+selection+'"]').val()
   let g = $('select[id="genre_'+selection+'"]').val()
-  // let v = $('select[id="voice_'+selection+'"]').val()
-  let v = "Contra"
+  let v = $('select[id="voice_'+selection+'"]').val() == ''?'all':
+            $('select[id="voice_'+selection+'"]').val()
+  // let v = "Contra"
 
   if(source == 'local') {
     // get filter parameters from inputs
@@ -93,9 +94,8 @@ function loadData(selection, source) {
     window.raw = raw
     notes = [];
     var voiceArray = [];
+    // load all voices in raw to dropdown
     for(let r of raw) {
-      let voiceObj = {}
-      // populate dropdown
       for(let v of r.voices) {
         // console.log(v)
         if(voiceArray.indexOf(v) == -1) {
@@ -105,29 +105,45 @@ function loadData(selection, source) {
           )
         }
       }
+    };
+    // set dropdown (add 1 to index for 'all')
+    document.getElementById("voice_"+selection).selectedIndex=voiceArray.indexOf(v)+1
+    console.log('voiceArray',voiceArray);
+    //filter for selected voice
+    var vcount = 0
+    for(let r of raw) {
       // create a voiceObj per work for indexlookup
+      let voiceObj = {};
       for(let i=0; i<r.voices.length; i++) {
         voiceObj[r.voices[i]] = i
-      }
+      };
+      // console.log('voiceObj',voiceObj);
+
       window.voiceObj = voiceObj;
-      // if selected voice is in this song
-      // use its index to push corresponding pitch array
-      if(v != '' && v in voiceObj) {
-        let voiceArray = r.features.pitch[voiceObj[v]]
+      if(v != 'all' && v in voiceObj) {
+        vcount +=1;
+        // console.log('voiceObj',voiceObj);
+        let voiceArray = r.features.pitch[voiceObj[v]];
         // console.log(v+' voice',voiceObj[v],voiceArray)
         // decompose each array and insert an 'X' between them
         for(let p of voiceArray) {
-          notes.push(p)
+          notes.push(p);
         }
-        notes.push('X')
+        notes.push('X');
         // notes.push(r.features.pitch[voiceObj[v]])
+      } else if(v == 'all') {
+        console.log('all voices')
+        for(let f of r.features.pitch) {
+          for(let p of f) {
+            notes.push(p);
+          }
+          notes.push('X');
+        }
       }
     }
-    console.log('notes',notes)
-    // console.log('all voices in selection',voiceArray)
-    // maintain current local data for .click behaviors
+    console.log(vcount+' '+v+' voices in '+selection)
+    console.log('notes for',selection,v,notes)
     selection == 'A' ? apinotesA = notes : apinotesB = notes;
-    // render selection A or B
     drawTree(selection, notes);
   } else if(source == 'api') {
     let url = 'http://josquin.stanford.edu/cgi-bin/jrp?a=notetree&f=' + c + '&genre='
@@ -154,6 +170,7 @@ function loadData(selection, source) {
 var root = ''
 
 function drawTree(selection, notes, start=null) {
+  // $("select[id='voice_"+selection+"']").selectedIndex = 3;
   if(reverseTree) {
     console.log(reverseTree);
     svgX = -120;
@@ -306,7 +323,6 @@ function drawTree(selection, notes, start=null) {
         }
       };
     })
-    $("select[id='voice_"+selection+"']").selectedIndex = 3;
 };
 
 function recurseParents(node) {
@@ -334,8 +350,8 @@ $(document).ready(function() {
     redraw()
   })
   $(".b-load").click(function(){
-    console.log(this.value)
-    loadData(this.value);
+    console.log(this.value, 'local')
+    loadData(this.value, 'local');
   });
   $('#b_render').click(function(){
     redraw()
