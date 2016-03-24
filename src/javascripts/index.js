@@ -84,7 +84,6 @@ function loadData(selection, source) {
   let g = $('select[id="genre_'+selection+'"]').val()
   let v = $('select[id="voice_'+selection+'"]').val() == ''?'all':
             $('select[id="voice_'+selection+'"]').val()
-  // let v = "Contra"
 
   if(source == 'local') {
     // get filter parameters from inputs
@@ -94,20 +93,24 @@ function loadData(selection, source) {
     window.raw = raw
     notes = [];
     var voiceArray = [];
-    // load all voices in raw to dropdown
-    for(let r of raw) {
-      for(let v of r.voices) {
-        // console.log(v)
-        if(voiceArray.indexOf(v) == -1) {
-          voiceArray.push(v)
-          $("#voice_"+selection).append(
-            "<option value="+v+">"+v+"</option>"
-          )
+    console.log('len',$("#voice_"+selection))
+    window.drop = $("#voice_"+selection)
+    // load all voices into dropdown if it's empty
+    if ($("#voice_"+selection)[0].length < 2) {
+      for(let r of raw) {
+        for(let v of r.voices) {
+          // console.log(v)
+          if(voiceArray.indexOf(v) == -1) {
+            voiceArray.push(v)
+            $("#voice_"+selection).append(
+              "<option value="+v+">"+v+"</option>"
+            )
+          }
         }
-      }
-    };
+      };
+    }
     // set dropdown (add 1 to index for 'all')
-    document.getElementById("voice_"+selection).selectedIndex=voiceArray.indexOf(v)+1
+    document.getElementById("voice_"+selection)[0].selectedIndex=voiceArray.indexOf(v)+1
     console.log('voiceArray',voiceArray);
     //filter for selected voice
     var vcount = 0
@@ -132,7 +135,6 @@ function loadData(selection, source) {
         notes.push('X');
         // notes.push(r.features.pitch[voiceObj[v]])
       } else if(v == 'all') {
-        console.log('all voices')
         for(let f of r.features.pitch) {
           for(let p of f) {
             notes.push(p);
@@ -141,8 +143,8 @@ function loadData(selection, source) {
         }
       }
     }
-    console.log(vcount+' '+v+' voices in '+selection)
-    console.log('notes for',selection,v,notes)
+    // console.log(vcount+' '+v+' voices in '+selection)
+    // console.log('notes for',selection,v,notes)
     selection == 'A' ? apinotesA = notes : apinotesB = notes;
     drawTree(selection, notes);
   } else if(source == 'api') {
