@@ -45,7 +45,6 @@ html(lang="en")
           input(type="radio", name="count_display", value="none")
           |  None
 
-
       button.btn.btn-primary#b_render Render Tree(s)
 
 
@@ -88,6 +87,11 @@ html(lang="en")
             option(value="motets") Motets
             option(value="songs" "selected") Songs
 
+        .form-group
+          label Voices
+          select.form-control.input-sm(type="select", name="voice", id="voice_A")
+            option(value="") All
+
       button.btn.btn-primary.b-load(value="A") Load Data
 
     #rootB
@@ -128,6 +132,11 @@ html(lang="en")
             option(value="masses") Masses
             option(value="motets") Motets
             option(value="songs" "selected") Songs
+
+        .form-group
+          label Voices
+          select.form-control.input-sm(type="select", name="voice", id="voice_B")
+            option(value="") All
 
       button.btn.btn-primary.b-load(value="B") Load Data
 
