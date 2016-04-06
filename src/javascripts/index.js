@@ -1,6 +1,11 @@
 /** index.js    D. McClure, K. Grossner
   * interface to load static or API data, render trees
   */
+var url = require('url'),
+    querystring = require('querystring'),
+    parsedUrl = url.parse(window.location.href, true, true),
+    searchParams = querystring.parse(parsedUrl.search.substring(1))
+console.log('searchParams',searchParams)
 
 import $ from 'jquery';
 import d3 from 'd3';
@@ -8,7 +13,7 @@ import d3 from 'd3';
 import SuffixTree from 'suffix-tree';
 // expose d3 functions like selectAll
 window.d3 = d3;
-
+window.$ = $;
 // load sample data from files regardless
 import rawA from './data/notes_JosSongs.json';
 import rawB from './data/notes_OckSongs.json';
@@ -76,44 +81,113 @@ function scaleText(val,range) {
   return s(val);
 }
 
+function sortByTitle(a,b) {
+  let aTitle = a.title.toLowerCase();
+  let bTitle = b.title.toLowerCase();
+  return ((aTitle < bTitle) ? -1 : ((aTitle > bTitle) ? 1 : 0));
+}
+
+function sortBy(a,b) {
+  let aWhat = a.toLowerCase();
+  let bWhat = b.toLowerCase();
+  return ((aWhat < bWhat) ? -1 : ((aWhat > bWhat) ? 1 : 0));
+}
 /**
   * selection = 'A' or 'B'; source = 'local' or 'api'
   */
 function loadData(selection, source) {
   let c = $('select[id="composer_'+selection+'"]').val()
   let g = $('select[id="genre_'+selection+'"]').val()
+  let w = searchParams['w'] ? searchParams['w']: $('select[id="work_'+selection+'"]').val()
+  // let w = $('select[id="work_'+selection+'"]').val()
   let v = $('select[id="voice_'+selection+'"]').val() == ''?'all':
             $('select[id="voice_'+selection+'"]').val()
 
   if(source == 'local') {
+    var notes = [],
+        workArray = [],
+        voiceArray = [];
     // get filter parameters from inputs
-    console.log('load '+c+' '+g+' '+(v==''?'all ':v)+' voices into graph '+selection)
+    console.log('load ('+c+'> '+g+':'+w+'; voices:'+v+') into graph '+selection)
     // assign appropriate file data to raw
     raw = selection == "A" ? rawA : rawB;
     window.raw = raw
-    notes = [];
-    var voiceArray = [];
-    console.log('len',$("#voice_"+selection))
-    window.drop = $("#voice_"+selection)
-    // load all voices into dropdown if it's empty
-    if ($("#voice_"+selection)[0].length < 2) {
+    // load all songs into dropdown if it has 2 or fewer in it
+    if ($("#work_"+selection)[0].length < 3) {
       for(let r of raw) {
-        for(let v of r.voices) {
-          // console.log(v)
-          if(voiceArray.indexOf(v) == -1) {
-            voiceArray.push(v)
-            $("#voice_"+selection).append(
-              "<option value="+v+">"+v+"</option>"
-            )
-          }
+        // console.log(v)
+        if(workArray.indexOf(r) == -1) {
+          workArray.push(r)
         }
       };
+      window.works = workArray.sort(sortByTitle)
+      // console.log(songs);
+      for(let i in works){
+        // console.log(songs[s].jrpid)
+        $("#work_"+selection).append(
+          "<option value="+works[i].jrpid+">"+works[i].title+"</option>"
+        )
+      }
+    }
+    // if work is selected, filter raw
+    if(w != 'all') {
+      raw = raw.filter(function(d){
+        return d.jrpid == w;
+      });
+      // set min-count = 1 for single work
+      $('input[name="min-count"]').val(1)
+    }
+
+    // console.log('len',$("#voice_"+selection))
+    window.drop = $("#voice_"+selection)
+    // load all songs into dropdown if it has 2 or fewer in it
+    if ($("#work_"+selection)[0].length < 3) {
+      for(let r of raw) {
+        // console.log(v)
+        if(workArray.indexOf(r) == -1) {
+          workArray.push(r)
+        }
+      };
+      window.works = workArray.sort(sortByTitle)
+      // console.log(songs);
+      for(let i in works){
+        // console.log(songs[s].jrpid)
+        $("#work_"+selection).append(
+          "<option value="+works[i].jrpid+">"+works[i].title+"</option>"
+        )
+      }
+    }
+    // asking for single work
+    if(searchParams['w']) {
+      console.log('w set',searchParams['w'])
+      $('select[id="work_A"]').val(searchParams['w'])
+    }
+    // load all voices into dropdown if it's empty
+    if ($("#voice_"+selection)[0].length < 2) {
+      // if songs=all get all voices
+      // else get voices of song
+      // if($("#song_"+selection).val() == 'all'){
+        for(let w of works) {
+          for(let v of w.voices) {
+            if(voiceArray.indexOf(v) == -1) {
+              voiceArray.push(v)
+            }
+          }
+        }
+        window.voices = voiceArray.sort(sortBy)
+        for(let i in voices){
+          $("#voice_"+selection).append(
+            "<option value="+voices[i]+">"+voices[i]+"</option>"
+          )
+        }
+      // }
     }
     // set dropdown (add 1 to index for 'all')
     document.getElementById("voice_"+selection)[0].selectedIndex=voiceArray.indexOf(v)+1
-    console.log('voiceArray',voiceArray);
+    // console.log('voiceArray',voiceArray);
     //filter for selected voice
     var vcount = 0
+
     for(let r of raw) {
       // create a voiceObj per work for indexlookup
       let voiceObj = {};
@@ -142,6 +216,7 @@ function loadData(selection, source) {
           notes.push('X');
         }
       }
+      window.n = notes;
     }
     // console.log(vcount+' '+v+' voices in '+selection)
     // console.log('notes for',selection,v,notes)
@@ -150,7 +225,7 @@ function loadData(selection, source) {
   } else if(source == 'api') {
     let url = 'http://josquin.stanford.edu/cgi-bin/jrp?a=notetree&f=' + c + '&genre='
     if (g !='') {url += g} else g='all'
-    console.log('load '+c+' '+g+' '+v+' data into graph '+selection)
+    console.log('load ('+c+'> '+g+':'+w+'; voices:'+v+') into graph '+selection)
     console.log('getting API data from', url);
     d3.json(url, function(error, raw) {
       console.log(error);
@@ -228,6 +303,7 @@ function drawTree(selection, notes, start=null) {
   let nodes = cluster.nodes(data);
   let links = cluster.links(nodes);
   window.l = links[7]
+  window.d = data
   // console.log('a link', links[7].source,links[7].target)
   // find min/max counts used to scale nodes and node labels
   var maxCount = d3.max(nodes, function(d){return d.count});
@@ -265,29 +341,33 @@ function drawTree(selection, notes, start=null) {
       }
     });
 
-  node.append('circle')
+  let circ = node.append('circle')
     .attr('r', function(d) {
       return scaleNode(d.count,[minCount,maxCount]);
     })
     .attr('fill',function() {
       return counterClass === '.countA' ? '#BC5330' : '#1F5FA2'
-    });
+    })
+    .append('text')
 
   // note letters
   node.append('text')
-    .attr('x', 0)
-    .attr('y', 0)
+    // .attr('x', 0)
+    // .attr('y', 0)
     .attr('dx', function(d) {
-      return d.depth == 0 ? 10 : d.children ? -18 : -8;
+      return d.depth == 0 ? -10 : -(scaleNode(d.count,[minCount,maxCount])+4);
+      // return d.depth == 0 ? -10 : d.children ? -(scaleNode(d.count,[minCount,maxCount])+4) : -8;
+      // return d.depth == 0 ? -10 : d.children ? -180 : -8;
     })
-    // .attr('dy', depth == 0 ? -10 : )
     .attr('dy', function(d) {
       return d.depth == 0 ? -10 : ".35em";
     })
     .style("font-size", function(d) {
       return d.depth == 0 ? 30 : scaleText(d.count,[minCount,maxCount]) //+'px'
     })
-    .style("text-anchor","end")
+    .style("text-anchor", function(d) {
+      return d.depth == 0 ? "start" : "end"
+    })
     .classed('leaf-text', function(d) {
       return !d.children;
     })
@@ -298,14 +378,11 @@ function drawTree(selection, notes, start=null) {
   // counts
   node.append('text')
     .attr('dx', function(d) {
-      return d.depth == 0 ? 10 : d.children ? 30 : 12;
+      return d.depth == 0 ? 10 : + (scaleNode(d.count,[minCount,maxCount]) + 4 );
     })
     .attr('dy', ".35em")
-    // .attr('dy', function(d) {
-    //   return d.depth == 0 ? -10 : 3;
-    // })
     .style("font-size", function(d) {
-      return d.depth == 0 ? 30 : scaleText(d.count,[minCount,maxCount]) //+'px'
+      return d.depth == 0 ? 30 : scaleText(d.count,[minCount,maxCount])
     })
     .style("text-anchor","start")
     .classed('leaf-text', function(d) {
@@ -337,10 +414,12 @@ function recurseParents(node) {
   // console.log('newRoot', newRoot)
   return newRoot;
 }
+
 function redraw() {
   drawTree("A",apinotesA,$('input[name="root"]').val());
   drawTree("B",apinotesB,$('input[name="root"]').val());
 }
+
 $(document).ready(function() {
   $("#rcheck").change(function (){
     if(this.checked) {
@@ -352,13 +431,25 @@ $(document).ready(function() {
     redraw()
   })
   $(".b-load").click(function(){
-    console.log(this.value, 'local')
-    loadData(this.value, 'local');
+    console.log(this.value, datasource)
+    loadData(this.value, datasource);
   });
   $('#b_render').click(function(){
     redraw()
     // drawTree("A",apinotesA,$('input[name="root"]').val());
     // drawTree("B",apinotesB,$('input[name="root"]').val());
+  })
+  $(".toggle-add").on("click",function(){
+    console.log('clicked to toggle add')
+    if($("#rootB").hasClass('hidden')) {
+      $(".toggle-add").text("Remove comparison set")
+      $("#rootB").removeClass("hidden")
+      $("#rootA a.toggle-add").css('visibility', 'hidden');
+    } else {
+      $(".toggle-add").text("Add comparison set")
+      $("#rootB").addClass("hidden")
+      $("#rootA a.toggle-add").css('visibility', 'visible');
+    }
   })
 })
 
