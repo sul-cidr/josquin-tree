@@ -1,6 +1,5 @@
 body {
   margin: 0;
-  padding-top: 12px;
 }
 h1, h3 { margin-top:0;}
 
@@ -17,7 +16,7 @@ h1, h3 { margin-top:0;}
 
 #rootA {
  float:left;
- width: 950px;
+ width: 550px;
  padding-left: 20px
 }
 
@@ -29,20 +28,4 @@ h1, h3 { margin-top:0;}
 
 .countA, .countB {
   font-size: 0.8em;
-}
-
-svg:not(:root) {
-  overflow:visible;
-}
-
-#drop_A {
-  display:inline-flex;
-  width: 900px;
-  label {
-    margin: 0 4px 0 6px;
-  }
-}
-#add_set {
-  // display: inline-block;
-  // float:right;
 }

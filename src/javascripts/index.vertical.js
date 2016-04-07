@@ -33,24 +33,19 @@ var root = '',
     svgSet = '',
     counterClass = '',
     reverseTree = '',
-    svgX = '',
-    svgY = '',
+    svgX = 45,
     raw = '',
     newRoot=[]
 
-let w = 950;
-let h = 370;
-// let w = 650;
-// let h = 720;
+let w = 650;
+let h = 720;
 
 let cluster = d3.layout.cluster()
-  .size([w, h]);
-  // .size([h, w-220]);
+  .size([h, w-220]);
 
 let diagonal = d3.svg.diagonal()
   .projection(function(d) {
-    return [d.x, d.y-h];
-    // return [d.y, d.x];
+    return [d.y, d.x];
   });
 
 let diagonalR = d3.svg.diagonal()
@@ -255,14 +250,12 @@ function drawTree(selection, notes, start=null) {
   // $("select[id='voice_"+selection+"']").selectedIndex = 3;
   if(reverseTree) {
     console.log(reverseTree);
-    svgY = -120;
+    svgX = -120;
   } else {
-    svgY = 350;
+    svgX = 45;
   }
-  svgA.attr('transform', 'translate(0,'+svgY+')');
-  svgB.attr('transform', 'translate('+svgY+',0)');
-  // svgA.attr('transform', 'translate('+svgX+',0)');
-  // svgB.attr('transform', 'translate('+svgX+',0)');
+  svgA.attr('transform', 'translate('+svgX+',0)');
+  svgB.attr('transform', 'translate('+svgX+',0)');
 
   var notesArr=[]
   notesArr.push(notes)
@@ -332,8 +325,7 @@ function drawTree(selection, notes, start=null) {
     .attr('transform', function(d) {
       return reverseTree ?
         `translate(${650-d.y},${d.x})` :
-        `translate(${d.x},${d.y-h})`;
-        // `translate(${d.y},${d.x})`;
+        `translate(${d.y},${d.x})`;
     })
     .on('click', function(d) {
       newRoot = [];
@@ -363,20 +355,18 @@ function drawTree(selection, notes, start=null) {
     // .attr('x', 0)
     // .attr('y', 0)
     .attr('dx', function(d) {
-      return d.depth == 0 ? -10 : d.depth == 1 ?
-        -(scaleNode(d.count,[minCount,maxCount])+4) : 0;
+      return d.depth == 0 ? -10 : -(scaleNode(d.count,[minCount,maxCount])+4);
       // return d.depth == 0 ? -10 : d.children ? -(scaleNode(d.count,[minCount,maxCount])+4) : -8;
       // return d.depth == 0 ? -10 : d.children ? -180 : -8;
     })
     .attr('dy', function(d) {
-      return d.depth == 0 ? -10 : d.depth > 1 ?
-        -(scaleNode(d.count,[minCount,maxCount])+4) : ".35em";
+      return d.depth == 0 ? -10 : ".35em";
     })
     .style("font-size", function(d) {
       return d.depth == 0 ? 30 : scaleText(d.count,[minCount,maxCount]) //+'px'
     })
     .style("text-anchor", function(d) {
-      return d.depth == 0 ? "start" : d.depth > 1 ? "middle" : "end";
+      return d.depth == 0 ? "start" : "end"
     })
     .classed('leaf-text', function(d) {
       return !d.children;
@@ -388,18 +378,13 @@ function drawTree(selection, notes, start=null) {
   // counts
   node.append('text')
     .attr('dx', function(d) {
-      return d.depth == 0 ? 10 : d.depth == 1 ? +
-        (scaleNode(d.count,[minCount,maxCount]) + 4 ) : 0;
+      return d.depth == 0 ? 10 : + (scaleNode(d.count,[minCount,maxCount]) + 4 );
     })
-    .attr('dy', function(d) {
-      return d.depth > 1 ? scaleNode(d.count,[minCount,maxCount]) +14 : ".35em";
-    })
+    .attr('dy', ".35em")
     .style("font-size", function(d) {
       return d.depth == 0 ? 30 : scaleText(d.count,[minCount,maxCount])
     })
-    .style("text-anchor", function(d){
-      return d.depth > 1 ? "middle" : "start"
-    })
+    .style("text-anchor","start")
     .classed('leaf-text', function(d) {
       return !d.children;
     })
