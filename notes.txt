@@ -1,0 +1,18 @@
+
+
+- arrive at notetree/
+  - with id=; (w) 
+    - sets composer:selected, genre:selected, work:selected
+    - gathers voices
+
+  - vanilla (/notetree)
+    - 
+- 
+
+
+
+greater magnitude on right
+percent nn.n; 
+all counts at level >1 vertical
+
+svg width dynamic per window size
