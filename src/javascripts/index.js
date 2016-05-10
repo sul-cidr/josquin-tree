@@ -5,7 +5,7 @@ var url = require('url'),
     querystring = require('querystring'),
     parsedUrl = url.parse(window.location.href, true, true),
     searchParams = querystring.parse(parsedUrl.search.substring(1))
-console.log('searchParams',searchParams)
+// console.log('searchParams',searchParams)
 
 import $ from 'jquery';
 import d3 from 'd3';
@@ -17,7 +17,6 @@ window.$ = $;
 /**
   * set data source
   */
-// var datasource = 'api' //'local' // or 'api'
 
 var root = '',
     apitreeA = '',
@@ -44,17 +43,6 @@ let cluster = d3.layout.cluster()
   .size([w, h]);
   // .size([h, w-220]);
 
-let diagonal = d3.svg.diagonal()
-  .projection(function(d) {
-    return [d.x, d.y-h];
-    // return [d.y, d.x];
-  });
-
-let diagonalR = d3.svg.diagonal()
-  .projection(function(d) {
-    return [w-d.y, d.x];
-  });
-
 var svgA = d3.select('#rootA')
   .append('svg')
   .attr('id', 'tree')
@@ -69,6 +57,18 @@ var svgB = d3.select('#rootB')
   .attr('height', h)
   .append('g')
 
+let diagonal = d3.svg.diagonal()
+  .projection(function(d) {
+    return [d.x, d.y-h];
+    // return [d.y, d.x];
+  });
+
+let diagonalR = d3.svg.diagonal()
+  .projection(function(d) {
+    return [d.x, h-d.y ];
+    // return [w-d.y, d.x];
+  });
+
 /**
   * selection = 'A' or 'B'; source = 'local' or 'api'
   */
@@ -78,18 +78,18 @@ function loadData(selection, filter = false) {
   let w = searchParams['w'] ? searchParams['w']: $('select[id="work_'+selection+'"]').val()
   let v = $('select[id="voice_'+selection+'"]').val() == ''?'all':
             $('select[id="voice_'+selection+'"]').val()
-  console.log('loadData(), filter = ',filter)
+  console.log('loadData() '+selection+', filter =',filter)
   // $('select[id="work_A"]').val('Jos2801')
   let url = 'http://josquin.stanford.edu/cgi-bin/jrp?a=notetree&f=' + c + '&genre='
   if (g !='') {url += g} else g='all'
-  console.log('load ('+c+' > '+g+', works:'+w+'; voices:'+v+') into graph '+selection)
-  console.log('getting API data from', url);
+  console.log('load '+c+' -> genre:'+g+'; works:'+w+'; voices:'+v+' into Selection '+selection)
+  console.log('url:', url);
   d3.json(url, function(error, raw) {
     voiceArray = [];
 
-    if(filter == false) {
+    if(filter == false || filter == 'c' || filter == 'g') {
       workArray = [];
-      console.log('filter = false')
+      // console.log('filter = false')
       // clear works select and refill
       $("#work_"+selection).find('option').remove()
       $("#work_"+selection).append('<option value="all">All</option>')
@@ -108,7 +108,7 @@ function loadData(selection, filter = false) {
         )
       }
     } else {
-      $('select[id="work_A"]').val(work)
+      $('select[id="work_'+selection+'"]').val(w)
     }
     // if work is selected, filter raw
     if(w != 'all') {
@@ -139,8 +139,9 @@ var root = ''
 function drawTree(selection, notes, start=null) {
   // $("select[id='voice_"+selection+"']").selectedIndex = 3;
   if(reverseTree) {
-    console.log(reverseTree);
-    svgY = -120;
+    console.log('reverseTree',reverseTree);
+    svgY = 30;
+    // svgY = -120;
   } else {
     svgY = 200;
     // svgY = 350;
@@ -157,7 +158,7 @@ function drawTree(selection, notes, start=null) {
     svgSet = svgA
     notesSet = apinotesA
     counterClass = '.countA'
-  } else if(selection == "B"){
+    } else if(selection == "B"){
     svgSet = svgB
     notesSet = apinotesB
     counterClass = '.countB'
@@ -217,7 +218,8 @@ function drawTree(selection, notes, start=null) {
     .attr('class', 'node')
     .attr('transform', function(d) {
       return reverseTree ?
-        `translate(${650-d.y},${d.x})` :
+        `translate(${d.x}, ${h-d.y})` :
+        // `translate(${650-d.y},${d.x})` :
         `translate(${d.x},${d.y-h})`;
         // `translate(${d.y},${d.x})`;
     })
@@ -322,6 +324,7 @@ function redraw() {
 }
 
 $(document).ready(function() {
+  // reverseTree = true;
   $("#rcheck").change(function (){
     if(this.checked) {
       reverseTree = true;
@@ -335,8 +338,16 @@ $(document).ready(function() {
     console.log('b-load this',this.value)
     loadData(this.value);
   });
-  $(".select_work").change(function(){
-    loadData(this.id.substr(-1), true)
+  $(".select-composer").change(function(){
+    loadData(this.id.substr(-1), 'c')
+    console.log(this.value, this.id.substr(-1))
+  })
+  $(".select-genre").change(function(){
+    loadData(this.id.substr(-1), 'g')
+    // console.log(this.value)
+  })
+  $(".select-work").change(function(){
+    loadData(this.id.substr(-1), 'w')
     // console.log(this.value)
   })
   // $("#work_A").change(function(){
