@@ -89,7 +89,7 @@ function loadData(selection, filter = false) {
 
     if(filter == false || filter == 'c' || filter == 'g') {
       if(w != 'all' || g != 'all') {
-        console.log('changing "'+filter+'" but a work is selected')
+        console.log('filter is "'+filter+'", a genre or work selected')
         w = 'all';
         g = 'all';
         // $('select[id="work_'+selection+'"]').val('all')
@@ -126,7 +126,7 @@ function loadData(selection, filter = false) {
       $('input[name="min-count"]').val(1)
     }
 
-    console.log('raw',raw);
+    // console.log('raw',raw);
     notes = [];
     for(let r of raw) {
      for(let f of r.features.pitch) {
@@ -144,10 +144,10 @@ function loadData(selection, filter = false) {
 var root = ''
 
 function drawTree(selection, notes, start=null) {
-  console.log('drawTree',notes)
+  // console.log('drawTree',notes)
   // $("select[id='voice_"+selection+"']").selectedIndex = 3;
   if(reverseTree) {
-    console.log('reverseTree',reverseTree);
+    // console.log('reverseTree',reverseTree);
     svgY = 30;
     // svgY = -120;
   } else {
