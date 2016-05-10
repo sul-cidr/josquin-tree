@@ -29,8 +29,7 @@
 
       <div class="form-group">
         <input type="checkbox" id="rcheck" name="reverse" /> Reverse
-        </div>
-      <label>Count Display</label>
+      </div><label>Count Display</label>
 
       <form role="form"></form>
 
@@ -44,10 +43,11 @@
 
   <div id="rootA">
     <h3>Selection A (<span class="countA"></span>)</h3>
+    <a class="toggle-add" href="#">Add comparison set</a>
     <form class="form-data">
-      <div id="drop_A" class="form-group">
+      <div class="form-group">
         <label>Composer</label>
-        <select type="select" name="composer" id="composer_A" class="select-composer form-control input-sm">
+        <select type="select" name="composer" id="composer_A" class="form-control input-sm">
           <option value="Agr">Agricola</option>
           <option value="Ano">Anonymous</option>
           <option value="Bru">Brumel</option>
@@ -70,43 +70,40 @@
           <option value="Reg">Regis</option>
           <option value="Tin">Tinctoris</option>
         </select>
-      <!-- </div> -->
+      </div>
 
-      <!-- <div class="form-group"> -->
+      <div class="form-group">
         <label>Genre</label>
-        <select type="select" name="genre" id="genre_A" class="select-genre form-control input-sm">
+        <select type="select" name="genre" id="genre_A" class="form-control input-sm">
           <option value="all">All</option>
           <option value="masses">Masses</option>
           <option value="motets">Motets</option>
           <option value="songs" selected="selected">Songs</option>
         </select>
-      <!-- </div> -->
+      </div>
 
-      <!-- <div class="form-group"> -->
+      <div class="form-group">
         <label>Works</label>
-        <select type="select" name="work" id="work_A" sel="A" class="select-work form-control input-sm">
+        <select type="select" name="work" id="work_A" class="form-control input-sm">
           <option value="all">All</option>
         </select>
-      <!-- </div> -->
+      </div>
 
-      <!-- <div class="form-group"> -->
+      <div class="form-group">
         <label>Voices</label>
         <select type="select" name="voice" id="voice_A" class="form-control input-sm">
           <option value="all">All</option>
         </select>
       </div>
-    </form>
-    <span id="add_set"><a class="toggle-add" href="#">Add comparison set</a></span><br/>
-    <button value="A" class="btn btn-primary b-load">Load Data</button>
+    </form><button value="A" class="btn btn-primary b-load">Load Data</button>
   </div>
 
   <div id="rootB" class="hidden">
     <h3>Selection B (<span class="countB"></span>)</h3>
+    <a class="toggle-add" href="#">Remove this selection</a>
     <form class="form-data">
-      <div id="drop_B" class="form-group">
-        <label>Composer</label>
-        <select type="select" name="composer" id="composer_B" class="select-composer form-control input-sm">
-          <option value="">Select composer...</option>
+      <div class="form-group">
+        <label>Composer</label><select type="select" name="composer" id="composer_B" class="form-control input-sm">
           <option value="Agr">Agricola</option>
           <option value="Ano">Anonymous</option>
           <option value="Bru">Brumel</option>
@@ -116,50 +113,45 @@
           <option value="Gas">Gaspar</option>
           <option value="Isa">Isaac</option>
           <option value="Jap">Japart</option>
-          <option value="Jos" >Josquin</option>
+          <option value="Jos">Josquin</option>
           <option value="Joa">Josquin (secure)</option>
           <option value="Job">Josquin (not secure)</option>
           <option value="Rue">La Rue</option>
           <option value="Mar">Martini</option>
           <option value="Mou">Mouton</option>
           <option value="Obr">Obrecht</option>
-          <option value="Ock">Ockeghem</option>
+          <option value="Ock" selected="selected">Ockeghem</option>
           <option value="Ort">de Orto</option>
           <option value="Pip">Pipelare</option>
           <option value="Reg">Regis</option>
           <option value="Tin">Tinctoris</option>
         </select>
-      <!-- </div> -->
+      </div>
 
-      <!-- <div class="form-group"> -->
+      <div class="form-group">
         <label>Genre</label>
-        <select type="select" name="genre" id="genre_B" class="select-genre form-control input-sm">
+        <select type="select" name="genre" id="genre_B" class="form-control input-sm">
           <option value="all">All</option>
           <option value="masses">Masses</option>
           <option value="motets">Motets</option>
           <option value="songs" selected="selected">Songs</option>
         </select>
-      <!-- </div> -->
-
-      <!-- <div class="form-group"> -->
+      </div>
+      <div class="form-group">
         <label>Works</label>
-        <select type="select" name="work" id="work_B" sel="B" class="select-work form-control input-sm">
+        <select type="select" name="work" id="work_B" class="form-control input-sm">
           <option value="all">All</option>
         </select>
-      <!-- </div> -->
-
-      <!-- <div class="form-group"> -->
+      </div>
+      <div class="form-group">
         <label>Voices</label>
         <select type="select" name="voice" id="voice_B" class="form-control input-sm">
           <option value="all">All</option>
         </select>
       </div>
-    </form>
-    <!-- <span id="add_set"><a class="toggle-add" href="#">Add comparison set</a></span><br/> -->
-    <button value="B" class="btn btn-primary b-load">Load Data</button>
-  </div>
 
-  <script src="script.js" type="text/javascript">
+    </form><button value="B" class="btn btn-primary b-load">Load Data</button>
+  </div><script src="script.js" type="text/javascript">
 </script>
 </body>
 </html>
