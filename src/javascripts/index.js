@@ -14,21 +14,17 @@ import SuffixTree from 'suffix-tree';
 // expose d3 functions like selectAll
 window.d3 = d3;
 window.$ = $;
-// load sample data from files regardless
-import rawA from './data/notes_JosSongs.json';
-import rawB from './data/notes_OckSongs.json';
-
 /**
   * set data source
   */
-var datasource = 'api' //'local' // or 'api'
+// var datasource = 'api' //'local' // or 'api'
 
 var root = '',
     apitreeA = '',
     apitreeB = '',
     apinotesA = new Array,
     apinotesB = new Array,
-    notes = '',
+    notes = '', workArray = [], voiceArray = [],
     notesSet = '',
     svgSet = '',
     counterClass = '',
@@ -39,7 +35,8 @@ var root = '',
     newRoot=[]
 
 let w = 950;
-let h = 370;
+let h = 200;
+// let h = 370;
 // let w = 650;
 // let h = 720;
 
@@ -72,46 +69,56 @@ var svgB = d3.select('#rootB')
   .attr('height', h)
   .append('g')
 
-function scaleNode(val,range) {
-  let s = d3.scale.linear()
-    .domain(range)
-    .range([3,15]);
-  return s(val);
-}
-
-function scaleText(val,range) {
-  let s = d3.scale.linear()
-    .domain(range)
-    .range([12,20]);
-  return s(val);
-}
-
-function sortByTitle(a,b) {
-  let aTitle = a.title.toLowerCase();
-  let bTitle = b.title.toLowerCase();
-  return ((aTitle < bTitle) ? -1 : ((aTitle > bTitle) ? 1 : 0));
-}
-
-function sortBy(a,b) {
-  let aWhat = a.toLowerCase();
-  let bWhat = b.toLowerCase();
-  return ((aWhat < bWhat) ? -1 : ((aWhat > bWhat) ? 1 : 0));
-}
 /**
   * selection = 'A' or 'B'; source = 'local' or 'api'
   */
-function loadData(selection, source) {
+function loadData(selection, filter = false) {
   let c = $('select[id="composer_'+selection+'"]').val()
   let g = $('select[id="genre_'+selection+'"]').val()
   let w = searchParams['w'] ? searchParams['w']: $('select[id="work_'+selection+'"]').val()
   let v = $('select[id="voice_'+selection+'"]').val() == ''?'all':
             $('select[id="voice_'+selection+'"]').val()
-
+  console.log('loadData(), filter = ',filter)
+  // $('select[id="work_A"]').val('Jos2801')
   let url = 'http://josquin.stanford.edu/cgi-bin/jrp?a=notetree&f=' + c + '&genre='
   if (g !='') {url += g} else g='all'
-  console.log('load ('+c+'> '+g+':'+w+'; voices:'+v+') into graph '+selection)
+  console.log('load ('+c+' > '+g+', works:'+w+'; voices:'+v+') into graph '+selection)
   console.log('getting API data from', url);
   d3.json(url, function(error, raw) {
+    voiceArray = [];
+
+    if(filter == false) {
+      workArray = [];
+      console.log('filter = false')
+      // clear works select and refill
+      $("#work_"+selection).find('option').remove()
+      $("#work_"+selection).append('<option value="all">All</option>')
+      for(let r of raw) {
+        // console.log(v)
+        if(workArray.indexOf(r) == -1) {
+          workArray.push(r)
+        }
+      };
+      window.works = workArray.sort(sortByTitle)
+
+      for(let i in works){
+        // console.log(songs[s].jrpid)
+        $("#work_"+selection).append(
+          "<option value="+works[i].jrpid+">"+works[i].title+"</option>"
+        )
+      }
+    } else {
+      $('select[id="work_A"]').val(work)
+    }
+    // if work is selected, filter raw
+    if(w != 'all') {
+      raw = raw.filter(function(d){
+        return d.jrpid == w;
+      });
+      // set min-count = 1 for single work
+      $('input[name="min-count"]').val(1)
+    }
+
     // console.log(raw);
     notes = [];
     for(let r of raw) {
@@ -135,10 +142,11 @@ function drawTree(selection, notes, start=null) {
     console.log(reverseTree);
     svgY = -120;
   } else {
-    svgY = 350;
+    svgY = 200;
+    // svgY = 350;
   }
   svgA.attr('transform', 'translate(0,'+svgY+')');
-  svgB.attr('transform', 'translate('+svgY+',0)');
+  svgB.attr('transform', 'translate(0,'+svgY+')');
   // svgA.attr('transform', 'translate('+svgX+',0)');
   // svgB.attr('transform', 'translate('+svgX+',0)');
 
@@ -288,10 +296,10 @@ function drawTree(selection, notes, start=null) {
         return `${d.count.toLocaleString()}`;
       } else if (countDisplay == 'pct') {
         if (d.depth == 2) {
-          return `${(d.count/d.parent.count).toFixed(2).toLocaleString()}`;
+          return `${((d.count/d.parent.count)*100).toFixed(1).toLocaleString()}`;
         } else if (d.depth == 1) {
           let total = d3.sum(d.parent.children, function(d){return d.count})
-          return `${(d.count/total).toLocaleString()}`;
+          return `${((d.count/total)*100).toFixed(1).toLocaleString()}`+'%';
         }
       };
     })
@@ -324,9 +332,16 @@ $(document).ready(function() {
     redraw()
   })
   $(".b-load").click(function(){
-    console.log(this.value, datasource)
-    loadData(this.value, datasource);
+    console.log('b-load this',this.value)
+    loadData(this.value);
   });
+  $(".select_work").change(function(){
+    loadData(this.id.substr(-1), true)
+    // console.log(this.value)
+  })
+  // $("#work_A").change(function(){
+  //   loadData('A');
+  // })
   $('#b_render').click(function(){
     redraw()
     // drawTree("A",apinotesA,$('input[name="root"]').val());
@@ -337,11 +352,9 @@ $(document).ready(function() {
     if($("#rootB").hasClass('hidden')) {
       $(".toggle-add").text("Remove comparison set")
       $("#rootB").removeClass("hidden")
-      $("#rootA a.toggle-add").css('visibility', 'hidden');
     } else {
       $(".toggle-add").text("Add comparison set")
       $("#rootB").addClass("hidden")
-      $("#rootA a.toggle-add").css('visibility', 'visible');
     }
   })
 })
@@ -349,8 +362,37 @@ $(document).ready(function() {
 /**
   * initial load and draw
   */
-loadData('A',datasource);
+loadData('A', false);
 // loadData('B',datasource);
+
+/**
+  * misc utility functions
+  */
+function scaleNode(val,range) {
+  let s = d3.scale.linear()
+    .domain(range)
+    .range([3,15]);
+  return s(val);
+}
+
+function scaleText(val,range) {
+  let s = d3.scale.linear()
+    .domain(range)
+    .range([12,20]);
+  return s(val);
+}
+
+function sortByTitle(a,b) {
+  let aTitle = a.title.toLowerCase();
+  let bTitle = b.title.toLowerCase();
+  return ((aTitle < bTitle) ? -1 : ((aTitle > bTitle) ? 1 : 0));
+}
+
+function sortBy(a,b) {
+  let aWhat = a.toLowerCase();
+  let bWhat = b.toLowerCase();
+  return ((aWhat < bWhat) ? -1 : ((aWhat > bWhat) ? 1 : 0));
+}
 
 // if(source == 'local') {
 //   var notes = [],
