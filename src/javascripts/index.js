@@ -83,11 +83,17 @@ function loadData(selection, filter = false) {
   let url = 'http://josquin.stanford.edu/cgi-bin/jrp?a=notetree&f=' + c + '&genre='
   if (g !='') {url += g} else g='all'
   console.log('load '+c+' -> genre:'+g+'; works:'+w+'; voices:'+v+' into Selection '+selection)
-  console.log('url:', url);
+  // console.log('url:', url);
   d3.json(url, function(error, raw) {
     voiceArray = [];
 
     if(filter == false || filter == 'c' || filter == 'g') {
+      if(w != 'all' || g != 'all') {
+        console.log('changing "'+filter+'" but a work is selected')
+        w = 'all';
+        g = 'all';
+        // $('select[id="work_'+selection+'"]').val('all')
+      }
       workArray = [];
       // console.log('filter = false')
       // clear works select and refill
@@ -112,6 +118,7 @@ function loadData(selection, filter = false) {
     }
     // if work is selected, filter raw
     if(w != 'all') {
+    // if(['c','g'].indexOf(filter) > 0 && w != 'all') {
       raw = raw.filter(function(d){
         return d.jrpid == w;
       });
@@ -119,7 +126,7 @@ function loadData(selection, filter = false) {
       $('input[name="min-count"]').val(1)
     }
 
-    // console.log(raw);
+    console.log('raw',raw);
     notes = [];
     for(let r of raw) {
      for(let f of r.features.pitch) {
@@ -137,6 +144,7 @@ function loadData(selection, filter = false) {
 var root = ''
 
 function drawTree(selection, notes, start=null) {
+  console.log('drawTree',notes)
   // $("select[id='voice_"+selection+"']").selectedIndex = 3;
   if(reverseTree) {
     console.log('reverseTree',reverseTree);
@@ -335,12 +343,12 @@ $(document).ready(function() {
     redraw()
   })
   $(".b-load").click(function(){
-    console.log('b-load this',this.value)
+    // console.log('b-load this',this.value)
     loadData(this.value);
   });
   $(".select-composer").change(function(){
     loadData(this.id.substr(-1), 'c')
-    console.log(this.value, this.id.substr(-1))
+    // console.log(this.value, this.id.substr(-1))
   })
   $(".select-genre").change(function(){
     loadData(this.id.substr(-1), 'g')
