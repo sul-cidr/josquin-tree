@@ -85,8 +85,6 @@ function loadData(selection, filter = false) {
   console.log('load '+c+' -> genre:'+g+'; works:'+w+'; voices:'+v+' into Selection '+selection)
   // console.log('url:', url);
   d3.json(url, function(error, raw) {
-    voiceArray = [];
-
     if(filter == false || filter == 'c' || filter == 'g') {
       if(w != 'all' || g != 'all') {
         console.log('filter is "'+filter+'", a genre or work selected')
@@ -95,46 +93,72 @@ function loadData(selection, filter = false) {
         // $('select[id="work_'+selection+'"]').val('all')
       }
       workArray = [];
+      voiceArray = [];
       // console.log('filter = false')
       // clear works select and refill
       $("#work_"+selection).find('option').remove()
       $("#work_"+selection).append('<option value="all">All</option>')
+      $("#voice_"+selection).find('option').remove()
+      $("#voice_"+selection).append('<option value="all">All</option>')
       for(let r of raw) {
         // console.log(v)
         if(workArray.indexOf(r) == -1) {
           workArray.push(r)
         }
+        // console.log('voices',r.voices)
+
       };
       window.works = workArray.sort(sortByTitle)
 
       for(let i in works){
-        // console.log(songs[s].jrpid)
         $("#work_"+selection).append(
           "<option value="+works[i].jrpid+">"+works[i].title+"</option>"
         )
+        for(let v of works[i].voices) {
+          if(voiceArray.indexOf(v) == -1) {
+            voiceArray.push(v)
+          }
+        }
       }
+      window.voices = voiceArray.sort(sortBy)
+      console.log(voices.length + ' voices')
+      for(let i in voices){
+        $("#voice_"+selection).append(
+          "<option value="+voices[i]+">"+voices[i]+"</option>"
+        )
+      }
+
     } else {
       $('select[id="work_'+selection+'"]').val(w)
     }
+
     // if work is selected, filter raw
     if(w != 'all') {
-    // if(['c','g'].indexOf(filter) > 0 && w != 'all') {
       raw = raw.filter(function(d){
         return d.jrpid == w;
       });
       // set min-count = 1 for single work
       $('input[name="min-count"]').val(1)
+      // voiceArray=[]
+      // console.log('raw from 1 work', raw)
+      // for(let i in raw[0].voices) {
+      //   console.log(raw[0].features.pitch[i])
+      //   voiceArray.push(raw[0].voices[i])
+      // }
     }
-
-    // console.log('raw',raw);
+    if(v != 'all'){
+      notes = [];
+    }
+    console.log('raw',raw.length, raw[0]);
+    console.log('voiceArray', voiceArray)
     notes = [];
     for(let r of raw) {
-     for(let f of r.features.pitch) {
-       for(let p of f) {
-         notes.push(p);
-       }
-       notes.push('X');
-     }
+      for(let f of r.features.pitch) {
+        for(let p of f) {
+          notes.push(p);
+        }
+        notes.push('X');
+      }
     }
     selection == 'A' ? apinotesA = notes : apinotesB = notes;
     drawTree(selection, notes);
@@ -358,9 +382,10 @@ $(document).ready(function() {
     loadData(this.id.substr(-1), 'w')
     // console.log(this.value)
   })
-  // $("#work_A").change(function(){
-  //   loadData('A');
-  // })
+  $(".select-voice").change(function(){
+    loadData(this.id.substr(-1), 'v')
+    // console.log(this.value)
+  })
   $('#b_render').click(function(){
     redraw()
     // drawTree("A",apinotesA,$('input[name="root"]').val());
@@ -412,125 +437,3 @@ function sortBy(a,b) {
   let bWhat = b.toLowerCase();
   return ((aWhat < bWhat) ? -1 : ((aWhat > bWhat) ? 1 : 0));
 }
-
-// if(source == 'local') {
-//   var notes = [],
-//       workArray = [],
-//       voiceArray = [];
-//   // get filter parameters from inputs
-//   console.log('load ('+c+'> '+g+':'+w+'; voices:'+v+') into graph '+selection)
-//   // assign appropriate file data to raw
-//   raw = selection == "A" ? rawA : rawB;
-//   window.raw = raw
-//   // load all songs into dropdown if it has 2 or fewer in it
-//   if ($("#work_"+selection)[0].length < 3) {
-//     for(let r of raw) {
-//       // console.log(v)
-//       if(workArray.indexOf(r) == -1) {
-//         workArray.push(r)
-//       }
-//     };
-//     window.works = workArray.sort(sortByTitle)
-//     // console.log(songs);
-//     for(let i in works){
-//       // console.log(songs[s].jrpid)
-//       $("#work_"+selection).append(
-//         "<option value="+works[i].jrpid+">"+works[i].title+"</option>"
-//       )
-//     }
-//   }
-//   // if work is selected, filter raw
-//   if(w != 'all') {
-//     raw = raw.filter(function(d){
-//       return d.jrpid == w;
-//     });
-//     // set min-count = 1 for single work
-//     $('input[name="min-count"]').val(1)
-//   }
-//
-//   // console.log('len',$("#voice_"+selection))
-//   window.drop = $("#voice_"+selection)
-//   // load all songs into dropdown if it has 2 or fewer in it
-//   if ($("#work_"+selection)[0].length < 3) {
-//     for(let r of raw) {
-//       // console.log(v)
-//       if(workArray.indexOf(r) == -1) {
-//         workArray.push(r)
-//       }
-//     };
-//     window.works = workArray.sort(sortByTitle)
-//     // console.log(songs);
-//     for(let i in works){
-//       // console.log(songs[s].jrpid)
-//       $("#work_"+selection).append(
-//         "<option value="+works[i].jrpid+">"+works[i].title+"</option>"
-//       )
-//     }
-//   }
-//   // asking for single work
-//   if(searchParams['w']) {
-//     console.log('w set',searchParams['w'])
-//     $('select[id="work_A"]').val(searchParams['w'])
-//   }
-//   // load all voices into dropdown if it's empty
-//   if ($("#voice_"+selection)[0].length < 2) {
-//     // if songs=all get all voices
-//     // else get voices of song
-//     // if($("#song_"+selection).val() == 'all'){
-//       for(let w of works) {
-//         for(let v of w.voices) {
-//           if(voiceArray.indexOf(v) == -1) {
-//             voiceArray.push(v)
-//           }
-//         }
-//       }
-//       window.voices = voiceArray.sort(sortBy)
-//       for(let i in voices){
-//         $("#voice_"+selection).append(
-//           "<option value="+voices[i]+">"+voices[i]+"</option>"
-//         )
-//       }
-//     // }
-//   }
-//   // set dropdown (add 1 to index for 'all')
-//   document.getElementById("voice_"+selection)[0].selectedIndex=voiceArray.indexOf(v)+1
-//   // console.log('voiceArray',voiceArray);
-//   //filter for selected voice
-//   var vcount = 0
-//
-//   for(let r of raw) {
-//     // create a voiceObj per work for indexlookup
-//     let voiceObj = {};
-//     for(let i=0; i<r.voices.length; i++) {
-//       voiceObj[r.voices[i]] = i
-//     };
-//     // console.log('voiceObj',voiceObj);
-//
-//     window.voiceObj = voiceObj;
-//     if(v != 'all' && v in voiceObj) {
-//       vcount +=1;
-//       // console.log('voiceObj',voiceObj);
-//       let voiceArray = r.features.pitch[voiceObj[v]];
-//       // console.log(v+' voice',voiceObj[v],voiceArray)
-//       // decompose each array and insert an 'X' between them
-//       for(let p of voiceArray) {
-//         notes.push(p);
-//       }
-//       notes.push('X');
-//       // notes.push(r.features.pitch[voiceObj[v]])
-//     } else if(v == 'all') {
-//       for(let f of r.features.pitch) {
-//         for(let p of f) {
-//           notes.push(p);
-//         }
-//         notes.push('X');
-//       }
-//     }
-//     window.n = notes;
-//   }
-//   // console.log(vcount+' '+v+' voices in '+selection)
-//   // console.log('notes for',selection,v,notes)
-//   selection == 'A' ? apinotesA = notes : apinotesB = notes;
-//   drawTree(selection, notes);
-// }
-// else if(source == 'api') {
