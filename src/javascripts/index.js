@@ -79,72 +79,87 @@ function loadData(selection, filter = false) {
   let v = $('select[id="voice_'+selection+'"]').val() == ''?'all':
             $('select[id="voice_'+selection+'"]').val()
   console.log('loadData() '+selection+', filter =',filter)
-  // $('select[id="work_A"]').val('Jos2801')
+  // always get all works for composer/genre
   let url = 'http://josquin.stanford.edu/cgi-bin/jrp?a=notetree&f=' + c + '&genre='
   if (g !='') {url += g} else g='all'
-  console.log('load '+c+' -> genre:'+g+'; works:'+w+'; voices:'+v+' into Selection '+selection)
-  // console.log('url:', url);
+  console.log('load '+c+' -> genre:'+g+'; works:'+w+'; voices:'+v+' into '+selection)
+  console.log('url:', url);
   d3.json(url, function(error, raw) {
+    // default, or if composer or genre changed:
+    // reset selected option to 'all'
     if(filter == false || filter == 'c' || filter == 'g') {
       if(w != 'all' || g != 'all') {
         console.log('filter is "'+filter+'", a genre or work selected')
         w = 'all';
         g = 'all';
-        // $('select[id="work_'+selection+'"]').val('all')
       }
       workArray = [];
-      voiceArray = [];
-      // console.log('filter = false')
-      // clear works select and refill
+      // clear works and voice dropdowns, re-populate
       $("#work_"+selection).find('option').remove()
       $("#work_"+selection).append('<option value="all">All</option>')
       $("#voice_"+selection).find('option').remove()
       $("#voice_"+selection).append('<option value="all">All</option>')
+
+      // raw is all works in composer/genre set
       for(let r of raw) {
-        // console.log(v)
         if(workArray.indexOf(r) == -1) {
           workArray.push(r)
         }
-        // console.log('voices',r.voices)
-
       };
+      //expose works
       window.works = workArray.sort(sortByTitle)
-
-      for(let i in works){
+      // populate works dropdown
+      for(let i in workArray){
         $("#work_"+selection).append(
           "<option value="+works[i].jrpid+">"+works[i].title+"</option>"
         )
-        for(let v of works[i].voices) {
+      }
+      voiceArray = [];
+      for(let i in workArray){
+        for(let v of workArray[i].voices) {
           if(voiceArray.indexOf(v) == -1) {
             voiceArray.push(v)
           }
         }
       }
+      // populate voices dropdown
+      // get voices for this set of works
       window.voices = voiceArray.sort(sortBy)
+      console.log(works.length + ' works')
       console.log(voices.length + ' voices')
-      for(let i in voices){
+      for(let i in voiceArray){
         $("#voice_"+selection).append(
-          "<option value="+voices[i]+">"+voices[i]+"</option>"
+          "<option value="+voiceArray[i]+">"+voiceArray[i]+"</option>"
         )
       }
 
-    } else {
-      $('select[id="work_'+selection+'"]').val(w)
     }
+    // else {
+    //   console.clear()
+    //   console.log("you filtered on a work", w)
+    //   $('select[id="work_'+selection+'"]').val(w)
+    // }
 
-    // if work is selected, filter raw
+    // if work is selected, filter raw & re-populate voices
     if(w != 'all') {
       raw = raw.filter(function(d){
         return d.jrpid == w;
       });
       // set min-count = 1 for single work
       $('input[name="min-count"]').val(1)
-      // voiceArray=[]
-      // console.log('raw from 1 work', raw)
-      // for(let i in raw[0].voices) {
-      //   console.log(raw[0].features.pitch[i])
-      //   voiceArray.push(raw[0].voices[i])
-      // }
+      voiceArray=[]
+      $("#voice_"+selection).find('option').remove()
+      $("#voice_"+selection).append('<option value="all">All</option>')
+      console.log('raw from 1 work', raw)
+      for(let i in raw[0].voices) {
+        // console.log(raw[0].features.pitch[i])
+        voiceArray.push(raw[0].voices[i])
+      }
+      for(let i in voiceArray){
+        $("#voice_"+selection).append(
+          "<option value="+voiceArray[i]+">"+voiceArray[i]+"</option>"
+        )
+      }
     }
     if(v != 'all'){
       notes = [];
