@@ -9,6 +9,7 @@ var url = require('url'),
 
 import $ from 'jquery';
 import d3 from 'd3';
+import _ from 'lodash';
 // linked module from https://github.com/davidmcclure/suffix-tree
 import SuffixTree from 'suffix-tree';
 // expose d3 functions like selectAll
@@ -76,29 +77,27 @@ function loadData(selection, filter = false) {
   let c = $('select[id="composer_'+selection+'"]').val()
   let g = $('select[id="genre_'+selection+'"]').val()
   let w = searchParams['w'] ? searchParams['w']: $('select[id="work_'+selection+'"]').val()
-  let v = $('select[id="voice_'+selection+'"]').val() == ''?'all':
-            $('select[id="voice_'+selection+'"]').val()
-  console.log('loadData() '+selection+', filter =',filter)
+  let v = $('select[id="voice_'+selection+'"]').val()
+  // console.log('loadData() '+selection+', filter =',filter)
   // always get all works for composer/genre
   let url = 'http://josquin.stanford.edu/cgi-bin/jrp?a=notetree&f=' + c + '&genre='
   if (g !='') {url += g} else g='all'
   console.log('load '+c+' -> genre:'+g+'; works:'+w+'; voices:'+v+' into '+selection)
-  console.log('url:', url);
+  // console.log('url:', url);
   d3.json(url, function(error, raw) {
-    // default, or if composer or genre changed:
-    // reset selected option to 'all'
+    // initial load or composer or genre changed:
     if(filter == false || filter == 'c' || filter == 'g') {
+      // set work & genre to 'all' if necessary
       if(w != 'all' || g != 'all') {
-        console.log('filter is "'+filter+'", a genre or work selected')
+        console.log('filter =',filter)
         w = 'all';
         g = 'all';
+        v = 'all';
       }
       workArray = [];
       // clear works and voice dropdowns, re-populate
       $("#work_"+selection).find('option').remove()
       $("#work_"+selection).append('<option value="all">All</option>')
-      $("#voice_"+selection).find('option').remove()
-      $("#voice_"+selection).append('<option value="all">All</option>')
 
       // raw is all works in composer/genre set
       for(let r of raw) {
@@ -106,7 +105,6 @@ function loadData(selection, filter = false) {
           workArray.push(r)
         }
       };
-      //expose works
       window.works = workArray.sort(sortByTitle)
       // populate works dropdown
       for(let i in workArray){
@@ -114,7 +112,10 @@ function loadData(selection, filter = false) {
           "<option value="+works[i].jrpid+">"+works[i].title+"</option>"
         )
       }
+      // voices for this set of works
       voiceArray = [];
+      $("#voice_"+selection).find('option').remove()
+      $("#voice_"+selection).append('<option value="all">All</option>')
       for(let i in workArray){
         for(let v of workArray[i].voices) {
           if(voiceArray.indexOf(v) == -1) {
@@ -123,10 +124,8 @@ function loadData(selection, filter = false) {
         }
       }
       // populate voices dropdown
-      // get voices for this set of works
       window.voices = voiceArray.sort(sortBy)
-      console.log(works.length + ' works')
-      console.log(voices.length + ' voices')
+      // console.log(works.length + ' works; '+voices.length + ' voices')
       for(let i in voiceArray){
         $("#voice_"+selection).append(
           "<option value="+voiceArray[i]+">"+voiceArray[i]+"</option>"
@@ -141,32 +140,51 @@ function loadData(selection, filter = false) {
     // }
 
     // if work is selected, filter raw & re-populate voices
+    // if(filter == 'w') {
     if(w != 'all') {
+      console.log("filtering on work:", w)
+      // console.log('raw length bef',raw.length);
       raw = raw.filter(function(d){
         return d.jrpid == w;
       });
+      // raw = raw[0]
       // set min-count = 1 for single work
       $('input[name="min-count"]').val(1)
+
       voiceArray=[]
       $("#voice_"+selection).find('option').remove()
       $("#voice_"+selection).append('<option value="all">All</option>')
-      console.log('raw from 1 work', raw)
-      for(let i in raw[0].voices) {
-        // console.log(raw[0].features.pitch[i])
-        voiceArray.push(raw[0].voices[i])
+      console.log('raw from ', w,raw)
+      for(let v in raw[0].voices) {
+        if(voiceArray.indexOf(v) == -1) {
+          voiceArray.push(raw[0].voices[v])
+        }
       }
-      for(let i in voiceArray){
+      window.voices = voiceArray.sort(sortBy)
+      console.log('filtered voiceArray:', voices)
+      for(let i in voices){
         $("#voice_"+selection).append(
-          "<option value="+voiceArray[i]+">"+voiceArray[i]+"</option>"
+          "<option value="+voices[i]+">"+voices[i]+"</option>"
         )
       }
     }
+    console.log(raw.length+' of '+works.length + ' works; '+voices.length + ' voices')
     if(v != 'all'){
-      notes = [];
+      console.log(c,g,w,v)
+      $("select[id='voice_A'] option[value='"+v+"']").prop('selected',true)
+      selection == 'A' ? apinotesA = buildNotes(raw,v) : apinotesB = buildNotes(raw,v);
+      drawTree(selection, buildNotes(raw,v));
+    } else {
+      selection == 'A' ? apinotesA = buildNotes(raw) : apinotesB = buildNotes(raw);
+      drawTree(selection, buildNotes(raw));
     }
-    console.log('raw',raw.length, raw[0]);
-    console.log('voiceArray', voiceArray)
-    notes = [];
+   })
+}
+
+function buildNotes(raw, voice = false) {
+  console.log('buildNotes() voice',voice)
+  var notes = new(Array);
+  if (!voice) {
     for(let r of raw) {
       for(let f of r.features.pitch) {
         for(let p of f) {
@@ -175,9 +193,26 @@ function loadData(selection, filter = false) {
         notes.push('X');
       }
     }
-    selection == 'A' ? apinotesA = notes : apinotesB = notes;
-    drawTree(selection, notes);
-   })
+  } else {
+    window.r=raw
+    for(let r of raw) {
+      // console.log(r.voices)
+      if (r.voices.indexOf(voice) > -1) {
+        for(let f of r.features.pitch[r.voices.indexOf(voice)]) {
+          for(let p of f) {
+            notes.push(p);
+          }
+          // notes.push('X');
+        }
+        // let filtered = r.features.pitch[r.voices.indexOf(voice)]
+        // console.log(filtered)
+        // notes.push(filtered)
+      }
+    }
+    console.log('notes for',voice, notes)
+  }
+  window.n=notes
+  return notes
 }
 
 var root = ''
@@ -367,7 +402,7 @@ function recurseParents(node) {
 
 function redraw() {
   drawTree("A",apinotesA,$('input[name="root"]').val());
-  drawTree("B",apinotesB,$('input[name="root"]').val());
+  // drawTree("B",apinotesB,$('input[name="root"]').val());
 }
 
 $(document).ready(function() {
@@ -422,7 +457,7 @@ $(document).ready(function() {
   * initial load and draw
   */
 loadData('A', false);
-// loadData('B',datasource);
+
 
 /**
   * misc utility functions
