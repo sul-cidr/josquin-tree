@@ -1,6 +1,6 @@
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
-  <title>Josquin/API</title>
+  <title>Josquin/notetree</title>
   <link rel="stylesheet" href="style.css" type="text/css" />
 </head>
 
@@ -57,14 +57,14 @@
           <option value="Gas">Gaspar</option>
           <option value="Isa">Isaac</option>
           <option value="Jap">Japart</option>
-          <option value="Jos" selected="selected">Josquin</option>
+          <option value="Jos">Josquin</option>
           <option value="Joa">Josquin (secure)</option>
           <option value="Job">Josquin (not secure)</option>
           <option value="Rue">La Rue</option>
           <option value="Mar">Martini</option>
           <option value="Mou">Mouton</option>
           <option value="Obr">Obrecht</option>
-          <option value="Ock">Ockeghem</option>
+          <option value="Ock" selected="selected">Ockeghem</option>
           <option value="Ort">de Orto</option>
           <option value="Pip">Pipelare</option>
           <option value="Reg">Regis</option>
@@ -78,7 +78,7 @@
           <option value="all">All</option>
           <option value="masses">Masses</option>
           <option value="motets">Motets</option>
-          <option value="songs" selected="selected">Songs</option>
+          <option value="songs">Songs</option>
         </select>
       <!-- </div> -->
 
@@ -91,7 +91,7 @@
 
       <!-- <div class="form-group"> -->
         <label>Voices</label>
-        <select type="select" name="voice" id="voice_A" class="form-control input-sm">
+        <select type="select" name="voice" id="voice_A" class="select-voice form-control input-sm">
           <option value="all">All</option>
         </select>
       </div>
@@ -150,7 +150,7 @@
 
       <!-- <div class="form-group"> -->
         <label>Voices</label>
-        <select type="select" name="voice" id="voice_B" class="form-control input-sm">
+        <select type="select" name="voice" id="voice_B" class="select-voice form-control input-sm">
           <option value="all">All</option>
         </select>
       </div>
