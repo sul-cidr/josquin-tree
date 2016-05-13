@@ -1,23 +1,12 @@
-/** index.js    D. McClure, K. Grossner
-  * interface to load static or API data, render trees
+/** index.js    K. Grossner, D. McClure
+  * interface to load API data, render trees
   */
+
 var url = require('url'),
     querystring = require('querystring'),
     parsedUrl = url.parse(window.location.href, true, true),
     searchParams = querystring.parse(parsedUrl.search.substring(1))
 // console.log('searchParams',searchParams)
-
-import $ from 'jquery';
-import d3 from 'd3';
-import _ from 'lodash';
-// linked module from https://github.com/davidmcclure/suffix-tree
-import SuffixTree from 'suffix-tree';
-// expose d3 functions like selectAll
-window.d3 = d3;
-window.$ = $;
-/**
-  * set data source
-  */
 
 var root = '',
     apitreeA = '',
@@ -34,10 +23,22 @@ var root = '',
     raw = '',
     newRoot=[]
 
+import $ from 'jquery';
+import d3 from 'd3';
+import _ from 'lodash';
+// linked module from https://github.com/davidmcclure/suffix-tree
+import SuffixTree from 'suffix-tree';
+
+// expose d3, jquery functions to console
+window.d3 = d3;
+window.$ = $;
+
+/**
+  * svg orientation
+  */
 let w = 950;
 let h = 200;
-// let h = 370;
-// let w = 650;
+// let w = 200;
 // let h = 720;
 
 let cluster = d3.layout.cluster()
@@ -71,14 +72,15 @@ let diagonalR = d3.svg.diagonal()
   });
 
 /**
-  * selection = 'A' or 'B'; source = 'local' or 'api'
+  * selection = 'A' or 'B';
+  * filter one of [c,g,w,v] composer, genre, work, voice
   */
 function loadData(selection, filter = false) {
   let c = $('select[id="composer_'+selection+'"]').val()
   let g = $('select[id="genre_'+selection+'"]').val()
   let w = searchParams['w'] ? searchParams['w']: $('select[id="work_'+selection+'"]').val()
   let v = $('select[id="voice_'+selection+'"]').val()
-  // console.log('loadData() '+selection+', filter =',filter)
+
   // always get all works for composer/genre
   let url = 'http://josquin.stanford.edu/cgi-bin/jrp?a=notetree&f=' + c + '&genre='
   if (g !='') {url += g} else g='all'
@@ -94,8 +96,10 @@ function loadData(selection, filter = false) {
         g = 'all';
         v = 'all';
       }
+      /**
+        * clear works dropdown, re-populate
+        */
       workArray = [];
-      // clear works and voice dropdowns, re-populate
       $("#work_"+selection).find('option').remove()
       $("#work_"+selection).append('<option value="all">All</option>')
 
@@ -112,7 +116,10 @@ function loadData(selection, filter = false) {
           "<option value="+works[i].jrpid+">"+works[i].title+"</option>"
         )
       }
-      // voices for this set of works
+
+      /**
+        * clear voices dropdown, re-populate
+        */
       voiceArray = [];
       $("#voice_"+selection).find('option').remove()
       $("#voice_"+selection).append('<option value="all">All</option>')
@@ -123,7 +130,6 @@ function loadData(selection, filter = false) {
           }
         }
       }
-      // populate voices dropdown
       window.voices = voiceArray.sort(sortBy)
       // console.log(works.length + ' works; '+voices.length + ' voices')
       for(let i in voiceArray){
@@ -133,16 +139,8 @@ function loadData(selection, filter = false) {
       }
 
     }
-    // else {
-    //   console.clear()
-    //   console.log("you filtered on a work", w)
-    //   $('select[id="work_'+selection+'"]').val(w)
-    // }
 
-    // if work is selected, filter raw & re-populate voices
-    // if(filter == 'w') {
     if(w != 'all') {
-      console.log("filtering on work:", w)
       // console.log('raw length bef',raw.length);
       raw = raw.filter(function(d){
         return d.jrpid == w;
@@ -154,7 +152,7 @@ function loadData(selection, filter = false) {
       voiceArray=[]
       $("#voice_"+selection).find('option').remove()
       $("#voice_"+selection).append('<option value="all">All</option>')
-      console.log('raw from ', w,raw)
+      console.log('filtered raw for ', w,raw)
       for(let v in raw[0].voices) {
         if(voiceArray.indexOf(v) == -1) {
           voiceArray.push(raw[0].voices[v])
@@ -202,14 +200,10 @@ function buildNotes(raw, voice = false) {
           for(let p of f) {
             notes.push(p);
           }
-          // notes.push('X');
         }
-        // let filtered = r.features.pitch[r.voices.indexOf(voice)]
-        // console.log(filtered)
-        // notes.push(filtered)
       }
     }
-    console.log('notes for',voice, notes)
+    // console.log('notes for',voice, notes)
   }
   window.n=notes
   return notes
@@ -455,6 +449,7 @@ $(document).ready(function() {
 
 /**
   * initial load and draw
+  * selection, filter=false
   */
 loadData('A', false);
 
