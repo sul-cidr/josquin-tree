@@ -427,7 +427,7 @@ $(document).ready(function() {
     } else { reverseTree = false;}
     redraw()
   })
-  $("#radio_buttons").change(function(){
+  $("#radio_count").change(function(){
     redraw()
   })
   $(".b-load").click(function(){

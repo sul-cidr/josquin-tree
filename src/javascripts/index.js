@@ -6,14 +6,14 @@ var url = require('url'),
     querystring = require('querystring'),
     parsedUrl = url.parse(window.location.href, true, true),
     searchParams = querystring.parse(parsedUrl.search.substring(1))
-// console.log('searchParams',searchParams)
+    // console.log('searchParams',searchParams)
 
 var root = '',
     apitreeA = '',
     apitreeB = '',
     apinotesA = new Array,
     apinotesB = new Array,
-    notes = '', workArray = [], voiceArray = [],
+    sequence = '', workArray = [], voiceArray = [],
     notesSet = '',
     svgSet = '',
     counterClass = '',
@@ -21,7 +21,8 @@ var root = '',
     svgX = '',
     svgY = '',
     raw = '',
-    newRoot=[]
+    newRoot=[],
+    dim = ''
 
 import $ from 'jquery';
 import d3 from 'd3';
@@ -75,17 +76,19 @@ let diagonalR = d3.svg.diagonal()
   * selection = 'A' or 'B';
   * filter one of [c,g,w,v] composer, genre, work, voice
   */
-function loadData(selection, filter = false) {
+var loadData = function(selection, filter = false) {
+// function loadData(selection, filter = false) {
   let c = $('select[id="composer_'+selection+'"]').val()
   let g = $('select[id="genre_'+selection+'"]').val()
   let w = searchParams['w'] ? searchParams['w']: $('select[id="work_'+selection+'"]').val()
   let v = $('select[id="voice_'+selection+'"]').val()
+  let d = $('input[name="dim_display"]:checked').val()
+  console.log('load '+d+' for '+c+' -> genre:'+g+'; works:'+w+'; voices:'+v+' into '+selection)
 
   // always get all works for composer/genre
-  let url = 'http://josquin.stanford.edu/cgi-bin/jrp?a=notetree&f=' + c + '&genre='
+  let url = 'http://josquin.stanford.edu/cgi-bin/jrp?a='+d+'tree&f=' + c + '&genre='
   if (g !='') {url += g} else g='all'
-  console.log('load '+c+' -> genre:'+g+'; works:'+w+'; voices:'+v+' into '+selection)
-  // console.log('url:', url);
+  console.log('url:', url);
   d3.json(url, function(error, raw) {
     // initial load or composer or genre changed:
     if(filter == false || filter == 'c' || filter == 'g') {
@@ -166,29 +169,35 @@ function loadData(selection, filter = false) {
         )
       }
     }
+
     console.log(raw.length+' of '+works.length + ' works; '+voices.length + ' voices')
+    console.log(c,g,w,v,d)
     if(v != 'all'){
-      console.log(c,g,w,v)
+      sequence = buildSeq(raw,d,v)
       $("select[id='voice_A'] option[value='"+v+"']").prop('selected',true)
-      selection == 'A' ? apinotesA = buildNotes(raw,v) : apinotesB = buildNotes(raw,v);
-      drawTree(selection, buildNotes(raw,v));
-    } else {
-      selection == 'A' ? apinotesA = buildNotes(raw) : apinotesB = buildNotes(raw);
-      drawTree(selection, buildNotes(raw));
+      selection == 'A' ? apinotesA = sequence : apinotesB = sequence;
+      drawTree(selection, sequence);
     }
-   })
+    else {
+      sequence = buildSeq(raw,d);
+      selection == 'A' ? apinotesA = sequence : apinotesB = sequence;
+      drawTree(selection, sequence);
+    }
+    window.seq = sequence;
+  })
 }
 
-function buildNotes(raw, voice = false) {
-  console.log('buildNotes() voice',voice)
-  var notes = new(Array);
+function buildSeq(raw, dim, voice = false) {
+  console.log('buildSeq()',dim,voice)
+  var seq = new(Array);
   if (!voice) {
     for(let r of raw) {
-      for(let f of r.features.pitch) {
+      for(let f of dim=='rhythm'?r.features.rhythm:r.features.pitch) {
+      // for(let f of r.features.pitch) {
         for(let p of f) {
-          notes.push(p);
+          seq.push(p);
         }
-        notes.push('X');
+        seq.push('X');
       }
     }
   } else {
@@ -196,23 +205,26 @@ function buildNotes(raw, voice = false) {
     for(let r of raw) {
       // console.log(r.voices)
       if (r.voices.indexOf(voice) > -1) {
-        for(let f of r.features.pitch[r.voices.indexOf(voice)]) {
+        for(let f of dim=='rhythm'?r.features.rhythm[r.voices.indexOf(voice)]:
+            r.features.pitch[r.voices.indexOf(voice)]) {
           for(let p of f) {
-            notes.push(p);
+            seq.push(p);
           }
         }
       }
     }
     // console.log('notes for',voice, notes)
   }
-  window.n=notes
-  return notes
+  return seq
 }
 
 var root = ''
+function drawTreeR() {
+  //
+}
 
-function drawTree(selection, notes, start=null) {
-  // console.log('drawTree',notes)
+var drawTree = function(selection, seq, start=null) {
+  console.log('drawTree() for', $('input[name="dim_display"]:checked').val())
   // $("select[id='voice_"+selection+"']").selectedIndex = 3;
   if(reverseTree) {
     // console.log('reverseTree',reverseTree);
@@ -227,12 +239,9 @@ function drawTree(selection, notes, start=null) {
   // svgA.attr('transform', 'translate('+svgX+',0)');
   // svgB.attr('transform', 'translate('+svgX+',0)');
 
-  var notesArr=[]
-  notesArr.push(notes)
-
   if(selection == "A"){
     svgSet = svgA
-    notesSet = apinotesA
+    window.notesSet = apinotesA
     counterClass = '.countA'
     } else if(selection == "B"){
     svgSet = svgB
@@ -240,18 +249,19 @@ function drawTree(selection, notes, start=null) {
     counterClass = '.countB'
   }
 
-  var notesArr=[]
-  notesArr.push(notes)
+  var seqArr=[]
+  seqArr.push(sequence)
 
   // build suffix-tree
   if( reverseTree ) {
-    var tree = new SuffixTree(notesArr,true);
+    var tree = new SuffixTree(seqArr,true);
     } else {
-    var tree = new SuffixTree(notesArr,false);
+    var tree = new SuffixTree(seqArr,false);
     }
 
   // display counters
-  $(counterClass).text(`${notesSet.length.toLocaleString()} notes`)
+  $(counterClass).text(`${sequence.length.toLocaleString()} notes`)
+  // $(counterClass).text(`${notesSet.length.toLocaleString()} notes`)
 
   eval(svgSet).text('');
 
@@ -261,7 +271,7 @@ function drawTree(selection, notes, start=null) {
     $('input[name="root"]').val(start)
     root = start;
     // console.log('start(root)', root)
-  }
+    }
 
   let depth = Number($('input[name="depth"]').val());
   let maxChildren = Number($('input[name="max-children"]').val());
@@ -394,21 +404,32 @@ function recurseParents(node) {
   return newRoot;
 }
 
-function redraw() {
-  drawTree("A",apinotesA,$('input[name="root"]').val());
-  // drawTree("B",apinotesB,$('input[name="root"]').val());
+function redraw(dim) {
+  if(dim == 'pitch'){
+    drawTree("A",apinotesA,$('input[name="root"]').val());
+    // drawTree("B",apinotesB,$('input[name="root"]').val());
+  } else {
+    drawTreeR("A",dim)
+    // drawTreeR("A",apirhythmsA,$('input[name="root"]').val());
+  }
 }
 
 $(document).ready(function() {
   // reverseTree = true;
+  var dim = $('input[name="dim_display"]:checked').val()
   $("#rcheck").change(function (){
     if(this.checked) {
       reverseTree = true;
     } else { reverseTree = false;}
-    redraw()
+    redraw(dim)
   })
-  $("#radio_buttons").change(function(){
-    redraw()
+  $("#radio_count").change(function(){
+    redraw(dim)
+  })
+  $("#radio_dim").change(function(){
+    loadData("A", false)
+    // redraw(dim)
+    // redraw($('input[name="dim_display"]:checked').val())
   })
   $(".b-load").click(function(){
     // console.log('b-load this',this.value)

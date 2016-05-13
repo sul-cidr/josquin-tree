@@ -23,7 +23,7 @@
   // width: 300px;
 }
 
-#radio_buttons {
+#radio_count {
   margin-left: -20px;
 }
 
