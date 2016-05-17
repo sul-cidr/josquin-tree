@@ -387,21 +387,21 @@ if(p_or_r == 'pitch') {
       // return `${d.name}`;
     })
 } else {
-  console.log('try to append svg')
+  // console.log('try to append svg')
   node.append("svg:image")
     .attr("xlink:href", function(d){
-      return 'http://josquin.stanford.edu/images/menpat/' + d.name + '.svg'
+      return d.name != 'X'? 'http://josquin.stanford.edu/images/menpat/' + d.name + '.svg' :'x.svg'
     })
     // .attr("xlink:href", 'http://josquin.stanford.edu/images/menpat/q_q_q_q.svg' )
     .attr("width", 110)
     .attr("height", 13)
-    .attr('dx', function(d) {
-      return d.depth == 0 ? -10 : d.depth == 1 ?
-        -(scaleNode(d.count,[minCount,maxCount])+4) : 0;
+    .attr('x', function(d) {
+      return d.depth == 0 ? -20 : d.depth == 1 ?
+        -(scaleNode(d.count,[minCount,maxCount])+24) : 15;
     })
-    .attr('dy', function(d) {
-      return d.depth == 0 ? -10 : d.depth > 1 ?
-        -(scaleNode(d.count,[minCount,maxCount])+4) : ".35em";
+    .attr('y', function(d) {
+      return d.depth == 0 ? -20 : d.depth == 1 ?
+        -(scaleNode(d.count,[minCount,maxCount])+12) : -5;
     })
 
   //http://josquin.stanford.edu/images/menpat/q_q_q_q.svg
