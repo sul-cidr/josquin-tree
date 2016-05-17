@@ -490,19 +490,19 @@ $(document).ready(function() {
   });
   $(".select-composer").change(function(){
     loadData(this.id.substr(-1), 'c')
-    // console.log(this.value, this.id.substr(-1))
+    console.log(this.value, this.id.substr(-1))
   })
   $(".select-genre").change(function(){
     loadData(this.id.substr(-1), 'g')
-    // console.log(this.value)
+    console.log(this.value)
   })
   $(".select-work").change(function(){
     loadData(this.id.substr(-1), 'w')
-    // console.log(this.value)
+    console.log(this.value)
   })
   $(".select-voice").change(function(){
     loadData(this.id.substr(-1), 'v')
-    // console.log(this.value)
+    console.log(this.value)
   })
   $('#b_render').click(function(){
     redraw(dim)
