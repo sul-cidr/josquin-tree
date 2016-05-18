@@ -66,6 +66,7 @@ var svgB = d3.select('#rootB')
   */
 // var loadData = function(selection, filter = false) {
 function loadData(selection, filter = false) {
+  console.log('loadData()',selection,filter)
   let c = $('select[id="composer_'+selection+'"]').val()
   let g = $('select[id="genre_'+selection+'"]').val()
   let w = searchParams['w'] ? searchParams['w']: $('select[id="work_'+selection+'"]').val()
@@ -76,13 +77,13 @@ function loadData(selection, filter = false) {
   // always get all works for composer/genre
   let url = 'http://josquin.stanford.edu/cgi-bin/jrp?a='+d+'tree&f=' + c + '&genre='
   if (g !='') {url += g} else g='all'
-  console.log('url:', url);
+  // console.log('url:', url);
   d3.json(url, function(error, raw) {
     // initial load or composer or genre changed:
     if(filter == false || filter == 'c' || filter == 'g') {
       // set work & genre to 'all' if necessary
       if(w != 'all' || g != 'all') {
-        console.log('filter =',filter)
+        // console.log('filter =',filter)
         w = 'all';
         g = 'all';
         v = 'all';
@@ -502,7 +503,7 @@ $(document).ready(function() {
   })
   $(".select-voice").change(function(){
     loadData(this.id.substr(-1), 'v')
-    console.log(this.value)
+    // console.log(this.value)
   })
   $('#b_render').click(function(){
     redraw(dim)
