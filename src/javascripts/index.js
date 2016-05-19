@@ -160,7 +160,7 @@ function loadData(selection, filter = false) {
     }
 
     console.log(raw.length+' of '+works.length + ' works; '+voices.length + ' voices')
-    console.log(c,g,w,v,d)
+    // console.log(c,g,w,v,d)
     if(v != 'all'){
       sequence = buildSeq(raw,d,v)
       $("select[id='voice_A'] option[value='"+v+"']").prop('selected',true)
@@ -177,7 +177,7 @@ function loadData(selection, filter = false) {
 }
 
 function buildSeq(raw, dim, voice = false) {
-  console.log('buildSeq()',dim,voice)
+  // console.log('buildSeq()',dim,voice)
   var seq = new(Array);
   if (!voice) {
     for(let r of raw) {
@@ -214,8 +214,8 @@ function drawTreeR() {
 
 var drawTree = function(selection, seq, start=null) {
   let p_or_r = $('input[name="dim_display"]:checked').val()
-  console.log('drawTree() for', p_or_r )
-
+  // console.log('drawTree() for', p_or_r )
+  console.log('drawTree()', selection, start)
   let diagonal = d3.svg.diagonal()
     .projection(function(d) {
       if(p_or_r == 'pitch'){
@@ -283,16 +283,14 @@ var drawTree = function(selection, seq, start=null) {
   if(start == null) {
     if(p_or_r == 'pitch') {
         root = $('input[name="root"]').val();
-        // root = $('input[name="root"]').val();
       } else {
-        root = 'w_b'
-        $('input[name="root"]').val(root)
+        root = 'w_b';
+        $('input[name="root"]').val(root);
       }
     } else {
-    $('input[name="root"]').val(start)
-    root = start;
-    // console.log('start(root)', root)
-    }
+      root = validateRoot(start);
+      console.log('start(root)', root);
+      }
 
   let depth = Number($('input[name="depth"]').val());
   let maxChildren = Number($('input[name="max-children"]').val());
@@ -442,6 +440,11 @@ if(p_or_r == 'pitch') {
     })
 };
 
+window.validateRoot = function(entry) {
+  let val = entry.replace(/ /g,',');
+  return val;
+}
+
 function recurseParents(node) {
   if(node) {
     // console.log('parent name', node.name)
@@ -454,19 +457,23 @@ function recurseParents(node) {
 }
 
 function redraw(dim) {
+  let rooty = validateRoot($('input[name="root"]').val())
   if(dim == 'pitch'){
-    drawTree("A",apinotesA,$('input[name="root"]').val());
-    // drawTree("B",apinotesB,$('input[name="root"]').val());
+    drawTree("A",apinotesA, rooty);
+    drawTree("B",apinotesB, rooty);
   } else {
     drawTreeR("A",dim)
-    // drawTreeR("A",apirhythmsA,$('input[name="root"]').val());
   }
 }
 
 $(document).ready(function() {
   // reverseTree = true;
   var dim = $('input[name="dim_display"]:checked').val()
+  // var rooty = $('input[name="root"]').val()
 
+  $('#b_render').click(function(){
+    redraw(dim)
+  })
   $("#rcheck").change(function (){
     if(this.checked) {
       reverseTree = true;
@@ -480,10 +487,7 @@ $(document).ready(function() {
     if ($('input[name="dim_display"]:checked').val() == 'pitch') {
       $('input[name="root"]').val('D')
     }
-    //
     loadData("A", false)
-    // redraw(dim)
-    // redraw($('input[name="dim_display"]:checked').val())
   })
   $(".b-load").click(function(){
     // console.log('b-load this',this.value)
@@ -504,11 +508,6 @@ $(document).ready(function() {
   $(".select-voice").change(function(){
     loadData(this.id.substr(-1), 'v')
     // console.log(this.value)
-  })
-  $('#b_render').click(function(){
-    redraw(dim)
-    // drawTree("A",apinotesA,$('input[name="root"]').val());
-    // drawTree("B",apinotesB,$('input[name="root"]').val());
   })
   $(".toggle-add").on("click",function(){
     console.log('clicked to toggle add')

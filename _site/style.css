@@ -6809,8 +6809,10 @@ svg:not(:root) {
 .form-data {
   margin-bottom: 0;
 }
-#radio_count {
-  margin-left: -20px;
+#radio_count,
+#radio_dim {
+  margin-left: -25px;
+  display: inline-flex;
 }
 input[type="radio"] {
   margin: 4px 0 0 8px;
