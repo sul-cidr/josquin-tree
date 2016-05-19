@@ -4,9 +4,9 @@
 
 var url = require('url'),
     querystring = require('querystring'),
-    parsedUrl = url.parse(window.location.href, true, true),
-    searchParams = querystring.parse(parsedUrl.search.substring(1))
-    // console.log('searchParams',searchParams)
+    parsedUrl = url.parse(window.location.href, true, true)
+window.searchParams = querystring.parse(parsedUrl.search.substring(1));
+console.log('searchParams',isEmpty(searchParams)?'empty':searchParams['w']);
 
 var root = '',
     apitreeA = '',
@@ -67,7 +67,8 @@ var svgB = d3.select('#rootB')
 // var loadData = function(selection, filter = false) {
 function loadData(selection, filter = false) {
   console.log('loadData()',selection,filter)
-  let c = $('select[id="composer_'+selection+'"]').val()
+  let c = searchParams['w'] ? searchParams['w'].substring(0,3) : $('select[id="composer_'+selection+'"]').val()
+  // let c = $('select[id="composer_'+selection+'"]').val()
   let g = $('select[id="genre_'+selection+'"]').val()
   let w = searchParams['w'] ? searchParams['w']: $('select[id="work_'+selection+'"]').val()
   let v = $('select[id="voice_'+selection+'"]').val()
@@ -77,8 +78,13 @@ function loadData(selection, filter = false) {
   // always get all works for composer/genre
   let url = 'http://josquin.stanford.edu/cgi-bin/jrp?a='+d+'tree&f=' + c + '&genre='
   if (g !='') {url += g} else g='all'
-  // console.log('url:', url);
+  console.log('url:', url);
   d3.json(url, function(error, raw) {
+    // url sent a work
+    if(searchParams['w']) {
+      filter = 'w';
+      workArray = getWorks(raw,selection);
+    }
     // initial load or composer or genre changed:
     if(filter == false || filter == 'c' || filter == 'g') {
       // set work & genre to 'all' if necessary
@@ -89,77 +95,29 @@ function loadData(selection, filter = false) {
         v = 'all';
       }
       /**
-        * clear works dropdown, re-populate
+        * clear works & voices dropdown, re-populate
         */
-      workArray = [];
-      $("#work_"+selection).find('option').remove()
-      $("#work_"+selection).append('<option value="all">All</option>')
-
-      // raw is all works in composer/genre set
-      for(let r of raw) {
-        if(workArray.indexOf(r) == -1) {
-          workArray.push(r)
-        }
-      };
-      window.works = workArray.sort(sortByTitle)
-      // populate works dropdown
-      for(let i in workArray){
-        $("#work_"+selection).append(
-          "<option value="+works[i].jrpid+">"+works[i].title+"</option>"
-        )
-      }
-
-      /**
-        * clear voices dropdown, re-populate
-        */
-      voiceArray = [];
-      $("#voice_"+selection).find('option').remove()
-      $("#voice_"+selection).append('<option value="all">All</option>')
-      for(let i in workArray){
-        for(let v of workArray[i].voices) {
-          if(voiceArray.indexOf(v) == -1) {
-            voiceArray.push(v)
-          }
-        }
-      }
-      window.voices = voiceArray.sort(sortBy)
-      // console.log(works.length + ' works; '+voices.length + ' voices')
-      for(let i in voiceArray){
-        $("#voice_"+selection).append(
-          "<option value="+voiceArray[i]+">"+voiceArray[i]+"</option>"
-        )
-      }
-
-    }
+      workArray = getWorks(raw,selection);
+      voiceArray = getVoices(workArray,selection);
+    } // end if(filter == false)
 
     if(w != 'all') {
-      // console.log('raw length bef',raw.length);
+      console.log('c,g,w:',c,g,w)
+      // ensure composer, genre, work options selected
+      $('select[id="composer_'+selection+'"]').val(c);
+      $('select[id="genre_'+selection+'"]').val(g);
+      $('select[id="work_'+selection+'"]').val(w);
+
       raw = raw.filter(function(d){
         return d.jrpid == w;
       });
-      // raw = raw[0]
       // set min-count = 1 for single work
       $('input[name="min-count"]').val(1)
 
-      voiceArray=[]
-      $("#voice_"+selection).find('option').remove()
-      $("#voice_"+selection).append('<option value="all">All</option>')
-      console.log('filtered raw for ', w,raw)
-      for(let v in raw[0].voices) {
-        if(voiceArray.indexOf(v) == -1) {
-          voiceArray.push(raw[0].voices[v])
-        }
-      }
-      window.voices = voiceArray.sort(sortBy)
-      console.log('filtered voiceArray:', voices)
-      for(let i in voices){
-        $("#voice_"+selection).append(
-          "<option value="+voices[i]+">"+voices[i]+"</option>"
-        )
-      }
+      voiceArray = getVoices(workArray,selection);
     }
 
-    console.log(raw.length+' of '+works.length + ' works; '+voices.length + ' voices')
+    // console.log(raw.length+' of '+works.length + ' works; '+voices.length + ' voices')
     // console.log(c,g,w,v,d)
     if(v != 'all'){
       sequence = buildSeq(raw,d,v)
@@ -527,10 +485,67 @@ $(document).ready(function() {
   */
 loadData('A', false);
 
+function getWorks(raw, selection){
+  /**
+    * clear works dropdown, re-populate
+    */
+  workArray = [];
+  $("#work_"+selection).find('option').remove()
+  $("#work_"+selection).append('<option value="all">All</option>')
+
+  // raw is all works in composer/genre set
+  for(let r of raw) {
+    if(workArray.indexOf(r) == -1) {
+      workArray.push(r)
+    }
+  };
+  window.works = workArray.sort(sortByTitle)
+  // populate works dropdown
+  for(let i in workArray){
+    $("#work_"+selection).append(
+      "<option value="+works[i].jrpid+">"+works[i].title+"</option>"
+    )
+  }
+  return workArray;
+}
+
+function getVoices(works, selection) {
+  voiceArray = [];
+  $("#voice_"+selection).find('option').remove()
+  $("#voice_"+selection).append('<option value="all">All</option>')
+  for(let i in workArray){
+    for(let v of workArray[i].voices) {
+      if(voiceArray.indexOf(v) == -1) {
+        voiceArray.push(v)
+      }
+    }
+  }
+  window.voices = voiceArray.sort(sortBy)
+  // console.log(works.length + ' works; '+voices.length + ' voices')
+  for(let i in voiceArray){
+    $("#voice_"+selection).append(
+      "<option value="+voiceArray[i]+">"+voiceArray[i]+"</option>"
+    )
+  }
+  return voiceArray;
+}
 
 /**
   * misc utility functions
   */
+function isEmpty(obj) {
+    if (obj == null) return true;
+
+    if (obj.length > 0)    return false;
+    if (obj.length === 0)  return true;
+
+    for (var key in obj) {
+        if (hasOwnProperty.call(obj, key)) return false;
+    }
+
+    return true;
+}
+
 function scaleNode(val,range) {
   let s = d3.scale.linear()
     .domain(range)
