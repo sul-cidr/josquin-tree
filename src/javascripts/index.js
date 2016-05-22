@@ -8,6 +8,8 @@ var url = require('url'),
 window.searchParams = querystring.parse(parsedUrl.search.substring(1));
 console.log('searchParams',isEmpty(searchParams)?'empty':searchParams['w']);
 
+// w=work,q=root,f=pitch || rhythm || ??,
+
 var root = '',
     apitreeA = '',
     apitreeB = '',
@@ -21,8 +23,7 @@ var root = '',
     svgX = '',
     svgY = '',
     raw = '',
-    newRoot=[],
-    dim = ''
+    newRoot=[]
 
 import $ from 'jquery';
 import d3 from 'd3';
@@ -165,10 +166,7 @@ function buildSeq(raw, dim, voice = false) {
   return seq
 }
 
-var root = ''
-function drawTreeR() {
-  //
-}
+
 
 var drawTree = function(selection, seq, start=null) {
   let p_or_r = $('input[name="dim_display"]:checked').val()
