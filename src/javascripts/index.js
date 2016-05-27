@@ -67,19 +67,19 @@ var svgB = d3.select('#rootB')
   */
 // var loadData = function(selection, filter = false) {
 function loadData(selection, filter = false) {
-  console.log('loadData()',selection,filter)
+  // console.log('loadData()',selection,filter)
   let c = searchParams['w'] ? searchParams['w'].substring(0,3) : $('select[id="composer_'+selection+'"]').val()
   // let c = $('select[id="composer_'+selection+'"]').val()
   let g = $('select[id="genre_'+selection+'"]').val()
   let w = searchParams['w'] ? searchParams['w']: $('select[id="work_'+selection+'"]').val()
   let v = $('select[id="voice_'+selection+'"]').val()
   let d = $('input[name="dim_display"]:checked').val()
-  console.log('load '+d+' for '+c+' -> genre:'+g+'; works:'+w+'; voices:'+v+' into '+selection)
+  // console.log('load '+d+' for '+c+' -> genre:'+g+'; works:'+w+'; voices:'+v+' into '+selection)
 
   // always get all works for composer/genre
   let url = 'http://josquin.stanford.edu/cgi-bin/jrp?a='+d+'tree&f=' + c + '&genre='
   if (g !='') {url += g} else g='all'
-  console.log('url:', url);
+  // console.log('url:', url);
   d3.json(url, function(error, raw) {
     // url sent a work
     if(searchParams['w']) {
@@ -99,23 +99,41 @@ function loadData(selection, filter = false) {
         * clear works & voices dropdown, re-populate
         */
       workArray = getWorks(raw,selection);
+      // clear, then re-populate works dropdown
+      $("#work_"+selection).find('option').remove()
+      $("#work_"+selection).append('<option value="all">All</option>')
+      // for(let i in getWorks(raw,selection)){
+      for(let i in workArray){
+        $("#work_"+selection).append(
+          // "<option value="+i.jrpid+">"+i.title+"</option>"
+          "<option value="+workArray[i].jrpid+">"+workArray[i].title+"</option>"
+          // "<option value="+works[i].jrpid+">"+works[i].title+"</option>"
+        )
+      }
       voiceArray = getVoices(workArray,selection);
     } // end if(filter == false)
 
     if(w != 'all') {
-      console.log('c,g,w:',c,g,w)
+      // a single work, by url or dropdown
       // ensure composer, genre, work options selected
       $('select[id="composer_'+selection+'"]').val(c);
+      // TODO: look up genre and set dropdown
       $('select[id="genre_'+selection+'"]').val(g);
       $('select[id="work_'+selection+'"]').val(w);
 
       raw = raw.filter(function(d){
         return d.jrpid == w;
       });
+      // TODO: change root to first note: raw[0].features.pitch[0][0]
+      // data is sparse, not ensured the existing root is in the work
+      $('input[name="root"]').val(raw[0].features.pitch[0][0])
+      console.log('c,g,w,1st pitch:',c,g,w,raw[0].features.pitch[0][0]) //.features[0].pitch[0][0])
       // set min-count = 1 for single work
       $('input[name="min-count"]').val(1)
-
+      workArray = getWorks(raw,selection);
       voiceArray = getVoices(workArray,selection);
+
+      // console.log('workArray, voiceArray',workArray,voiceArray)
     }
 
     // console.log(raw.length+' of '+works.length + ' works; '+voices.length + ' voices')
@@ -166,12 +184,10 @@ function buildSeq(raw, dim, voice = false) {
   return seq
 }
 
-
-
-var drawTree = function(selection, seq, start=null) {
+function drawTree(selection, seq, start=null) {
   let p_or_r = $('input[name="dim_display"]:checked').val()
   // console.log('drawTree() for', p_or_r )
-  console.log('drawTree()', selection, start)
+  console.log('drawTree(), selection, start:', selection, start)
   let diagonal = d3.svg.diagonal()
     .projection(function(d) {
       if(p_or_r == 'pitch'){
@@ -200,8 +216,8 @@ var drawTree = function(selection, seq, start=null) {
   }
 
   // if(p_or_r == 'pitch') {
-    svgA.attr('transform', 'translate(0,'+svgY+')');
-    svgB.attr('transform', 'translate(0,'+svgY+')');
+  svgA.attr('transform', 'translate(0,'+svgY+')');
+  svgB.attr('transform', 'translate(0,'+svgY+')');
   // }
   // else {
   //   svgA.attr('transform', 'translate('+svgX+',0)');
@@ -313,54 +329,54 @@ var drawTree = function(selection, seq, start=null) {
     })
     .append('text')
 
-if(p_or_r == 'pitch') {
-  // note letters
-  node.append('text')
-    // .attr('x', 0)
-    // .attr('y', 0)
-    .attr('dx', function(d) {
-      return d.depth == 0 ? -10 : d.depth == 1 ?
-        -(scaleNode(d.count,[minCount,maxCount])+4) : 0;
-      // return d.depth == 0 ? -10 : d.children ? -(scaleNode(d.count,[minCount,maxCount])+4) : -8;
-      // return d.depth == 0 ? -10 : d.children ? -180 : -8;
-    })
-    .attr('dy', function(d) {
-      return d.depth == 0 ? -10 : d.depth > 1 ?
-        -(scaleNode(d.count,[minCount,maxCount])+4) : ".35em";
-    })
-    .style("font-size", function(d) {
-      return d.depth == 0 ? 30 : scaleText(d.count,[minCount,maxCount]) //+'px'
-    })
-    .style("text-anchor", function(d) {
-      return d.depth == 0 ? "start" : d.depth > 1 ? "middle" : "end";
-    })
-    .classed('leaf-text', function(d) {
-      return !d.children;
-    })
-    .html(function(d) {
-      return d.name;
-      // return `${d.name}`;
-    })
-} else {
-  // console.log('try to append svg')
-  node.append("svg:image")
-    .attr("xlink:href", function(d){
-      return d.name != 'X'? 'http://josquin.stanford.edu/images/menpat/' + d.name + '.svg' :'x.svg'
-    })
-    // .attr("xlink:href", 'http://josquin.stanford.edu/images/menpat/q_q_q_q.svg' )
-    .attr("width", 110)
-    .attr("height", 13)
-    .attr('x', function(d) {
-      return d.depth == 0 ? -20 : d.depth == 1 ?
-        -(scaleNode(d.count,[minCount,maxCount])+24) : 15;
-    })
-    .attr('y', function(d) {
-      return d.depth == 0 ? -20 : d.depth == 1 ?
-        -(scaleNode(d.count,[minCount,maxCount])+12) : -5;
-    })
+  if(p_or_r == 'pitch') {
+    // note letters
+    node.append('text')
+      // .attr('x', 0)
+      // .attr('y', 0)
+      .attr('dx', function(d) {
+        return d.depth == 0 ? -10 : d.depth == 1 ?
+          -(scaleNode(d.count,[minCount,maxCount])+4) : 0;
+        // return d.depth == 0 ? -10 : d.children ? -(scaleNode(d.count,[minCount,maxCount])+4) : -8;
+        // return d.depth == 0 ? -10 : d.children ? -180 : -8;
+      })
+      .attr('dy', function(d) {
+        return d.depth == 0 ? -10 : d.depth > 1 ?
+          -(scaleNode(d.count,[minCount,maxCount])+4) : ".35em";
+      })
+      .style("font-size", function(d) {
+        return d.depth == 0 ? 30 : scaleText(d.count,[minCount,maxCount]) //+'px'
+      })
+      .style("text-anchor", function(d) {
+        return d.depth == 0 ? "start" : d.depth > 1 ? "middle" : "end";
+      })
+      .classed('leaf-text', function(d) {
+        return !d.children;
+      })
+      .html(function(d) {
+        return d.name;
+        // return `${d.name}`;
+      })
+  } else {
+    // console.log('try to append svg')
+    node.append("svg:image")
+      .attr("xlink:href", function(d){
+        return d.name != 'X'? 'http://josquin.stanford.edu/images/menpat/' + d.name + '.svg' :'x.svg'
+      })
+      // .attr("xlink:href", 'http://josquin.stanford.edu/images/menpat/q_q_q_q.svg' )
+      .attr("width", 110)
+      .attr("height", 13)
+      .attr('x', function(d) {
+        return d.depth == 0 ? -20 : d.depth == 1 ?
+          -(scaleNode(d.count,[minCount,maxCount])+24) : 15;
+      })
+      .attr('y', function(d) {
+        return d.depth == 0 ? -20 : d.depth == 1 ?
+          -(scaleNode(d.count,[minCount,maxCount])+12) : -5;
+      })
 
-  //http://josquin.stanford.edu/images/menpat/q_q_q_q.svg
-}
+    //http://josquin.stanford.edu/images/menpat/q_q_q_q.svg
+  }
 
   // counts
   node.append('text')
@@ -394,7 +410,7 @@ if(p_or_r == 'pitch') {
         }
       };
     })
-};
+}; // drawTree()
 
 window.validateRoot = function(entry) {
   let val = entry.replace(/ /g,',');
@@ -488,8 +504,6 @@ function getWorks(raw, selection){
     * clear works dropdown, re-populate
     */
   workArray = [];
-  $("#work_"+selection).find('option').remove()
-  $("#work_"+selection).append('<option value="all">All</option>')
 
   // raw is all works in composer/genre set
   for(let r of raw) {
@@ -497,22 +511,17 @@ function getWorks(raw, selection){
       workArray.push(r)
     }
   };
-  window.works = workArray.sort(sortByTitle)
-  // populate works dropdown
-  for(let i in workArray){
-    $("#work_"+selection).append(
-      "<option value="+works[i].jrpid+">"+works[i].title+"</option>"
-    )
-  }
+  window.workArray = workArray.sort(sortByTitle)
   return workArray;
 }
 
 function getVoices(works, selection) {
+  // console.log('getVoices, works, selection',works, selection)
   voiceArray = [];
   $("#voice_"+selection).find('option').remove()
   $("#voice_"+selection).append('<option value="all">All</option>')
-  for(let i in workArray){
-    for(let v of workArray[i].voices) {
+  for(let i in works){
+    for(let v of works[i].voices) {
       if(voiceArray.indexOf(v) == -1) {
         voiceArray.push(v)
       }
