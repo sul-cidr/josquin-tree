@@ -6772,14 +6772,14 @@ svg:not(:root) {
   color: #164893;
   margin: 0 4px 0 6px;
 }
-#tree .link {
+.tree .link {
   fill: none;
   stroke: #eee;
 }
-#tree .node {
+.tree .node {
   cursor: pointer;
 }
-#tree .node text {
+.tree .node text {
   font-family: serif;
   text-anchor: end;
   font-size: 12px;
@@ -6788,7 +6788,7 @@ svg:not(:root) {
   -moz-user-select: none;
   -webkit-user-select: none;
 }
-#tree .node text.leaf {
+.tree .node text.leaf {
   text-anchor: start;
 }
 #nav {

@@ -38,8 +38,9 @@ window.$ = $;
 /**
   * svg orientation
   */
-let w = 950;
-let h = 200;
+let w = window.innerWidth - 250;
+let h = window.innerHeight - 230; // active window - (dropdowns + footer)
+// let h = 200;
 // let w = 200;
 // let h = 720;
 
@@ -48,15 +49,21 @@ let cluster = d3.layout.cluster()
   // .size([h, w-220]);
 
 var svgA = d3.select('#rootA')
+  .append("div")
+  .classed("svg-container", true)
+  .classed('tree', true)
   .append('svg')
-  .attr('id', 'tree')
+  // .attr("preserveAspectRatio", "xMinYMin meet")
+  // .attr("viewBox", "0 0 1200 800")
+  // .classed("svg-content-responsive", true)
   .attr('width', w)
   .attr('height', h)
   .append('g')
 
+
 var svgB = d3.select('#rootB')
   .append('svg')
-  .attr('id', 'tree')
+  .classed('tree', true)
   .attr('width', w)
   .attr('height', h)
   .append('g')
@@ -210,7 +217,7 @@ function drawTree(selection, seq, start=null) {
     p_or_r == 'pitch' ? svgY = 30 : svgY = 0;
     // svgY = -120;
   } else {
-    p_or_r == 'pitch' ? svgY = 200 : svgY = 0;
+    p_or_r == 'pitch' ? svgY = h+20 : svgY = 0;
     // p_or_r == 'pitch' ? svgY = 200 : svgY = 350;
     // svgY = 350;
   }
@@ -428,7 +435,8 @@ function recurseParents(node) {
   return newRoot;
 }
 
-function redraw(dim) {
+function redraw(dim = null) {
+  console.log('redrew')
   let rooty = validateRoot($('input[name="root"]').val())
   if(dim == 'pitch'){
     drawTree("A",apinotesA, rooty);
@@ -439,6 +447,10 @@ function redraw(dim) {
 }
 
 $(document).ready(function() {
+  // window.onresize = function(){
+  //   console.log('new:',window.innerWidth,window.innerHeight)
+  //   // drawTree(selection, seq, start=null);
+  // }
   // reverseTree = true;
   var dim = $('input[name="dim_display"]:checked').val()
   // var rooty = $('input[name="root"]').val()
