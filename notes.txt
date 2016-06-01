@@ -1,18 +1,47 @@
+JRP Tree Visualization
+TODO 31 May 2016
+
+- test filtering actions across all 4 dropdowns
+- responsive scaling of <svg> element and containing <div>
+  - w/reverse
+  - pitch
+  - rhythm
+- on add comparison set -> shrink set A; A & B share screen equally
+- parse RESTful query for w=work,q=root,f=feature-type (pitch || rhythm || ??)
+- create setting constraints to maintain legibility (depth, children, count)
+  -  depends on comparison set configuration
+- alignment styling: invisible nodes if count < min count setting
+- no comparison set for rhythm
 
 
-- arrive at notetree/
-  - with id=; (w) 
-    - sets composer:selected, genre:selected, work:selected
-    - gathers voices
+Tasks in "JRP Project Tasks, 11-Sep 2015"
+  https://docs.google.com/spreadsheets/d/1Z-v9RH8shMY8DOZxg7v3F3PrAnJ3hCkujuh3NQmUGu0/edit#gid=75330382
 
-  - vanilla (/notetree)
-    - 
-- 
+High-level points for Tasks 1-9 in Section II:
+1a  - complete; effective limit of tree depth depends on screen size
+1b  - complete
+1c  - out of scope: depends on API extension (pitch+rhythm, per note)
+      - Craig will add this, given correct code structure (kg will do that)
 
+2a  - complete
+2b  - complete
+2c  - filter by voice complete, not "no. voices"
+2d  - what is 'mode'?
+2e  - filtering by mensuration would not result in tree?
 
+3a  - out of scope: requires 1(c)
+3b  - ditto
 
-greater magnitude on right
-percent nn.n; 
-all counts at level >1 vertical
+4   - complete
 
-svg width dynamic per window size
+5   - complete (click note to make it new root;
+        shift-click to make it and its parent(s) the root)
+
+6   - complete
+
+7   - out of scope: depends on new ribbon tool
+
+8   - in progress;
+      RESTful query for w=work,q=root,f=feature-type (pitch || rhythm || ??)
+
+9   - out of scope: requires 1(c)

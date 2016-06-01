@@ -468,8 +468,13 @@ $(document).ready(function() {
     redraw(dim)
   })
   $("#radio_dim").change(function(){
-    if ($('input[name="dim_display"]:checked').val() == 'pitch') {
+    let feature = $('input[name="dim_display"]:checked').val();
+    console.log('radio_dim',feature)
+    if (feature == 'pitch') {
       $('input[name="root"]').val('D')
+      $(".toggle-add").removeClass("hidden")
+    } else {
+      $(".toggle-add").addClass("hidden")
     }
     loadData("A", false)
   })
