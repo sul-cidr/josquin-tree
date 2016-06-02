@@ -6776,6 +6776,9 @@ svg:not(:root) {
   fill: none;
   stroke: #eee;
 }
+.tree .hidden-node {
+  display: none;
+}
 .tree .node {
   cursor: pointer;
 }

@@ -277,11 +277,12 @@ function drawTree(selection, seq, start=null) {
   let countDisplay = $('input[name="count_display"]:checked').val();
   // console.log('countDisplay',countDisplay)
 
+  // let data = tree.query(root, depth, maxChildren, 1);
   let data = tree.query(root, depth, maxChildren, minCountDisplay);
   let nodes = cluster.nodes(data);
   let links = cluster.links(nodes);
   window.data=data
-  window.l = links[7]
+  window.l = links
   window.n = nodes
   // console.log('a link', links[7].source,links[7].target)
   // find min/max counts used to scale nodes and node labels
@@ -300,7 +301,14 @@ function drawTree(selection, seq, start=null) {
     .data(nodes)
     .enter()
     .append('g')
-    .attr('class', 'node')
+    .attr('class', function(d){
+      return 'node'
+      // if(d.count < minCountDisplay && d.depth > 0) {
+      //   console.log('hiding',d)
+      //   return 'hidden-node'
+      // } else { return 'node'}
+    })
+    // .attr('class', 'node')
     .attr('transform', function(d) {
       if(p_or_r == 'pitch'){
         return reverseTree ?
@@ -317,9 +325,11 @@ function drawTree(selection, seq, start=null) {
       newRoot = [];
       window.n = d;
       if (d3.event.shiftKey) {
-        let rooty = recurseParents(d).reverse();
-        console.log('rooty', rooty.join(','))
-        drawTree(selection, seq, rooty.join(','));
+        if(p_or_r == 'pitch') {
+          let rooty = recurseParents(d).reverse();
+          console.log('rooty', rooty.join(','))
+          drawTree(selection, seq, rooty.join(','));
+        }
       } else if (d3.event.altKey) {
         console.log('altKey');
       } else {
