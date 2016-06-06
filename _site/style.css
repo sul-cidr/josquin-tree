@@ -6724,9 +6724,12 @@ button.close {
     display: none !important;
   }
 }
+html,
 body {
   margin: 0;
   padding-top: 12px;
+  height: 100%;
+  width: 100%;
 }
 h1,
 h3 {
@@ -6743,13 +6746,11 @@ h3 {
 #sel_A,
 #sel_B {
   float: left;
-  width: 980px;
-  height: 360px;
+  width: 100%;
   padding: 10px 0 20px 20px;
   margin-left: 10px;
 }
 #sel_B {
-  margin-top: 60px;
   background: azure;
 }
 #sel_B h3 {

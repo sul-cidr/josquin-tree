@@ -38,11 +38,10 @@ window.$ = $;
 /**
   * svg orientation
   */
-// var margin = {top: 5, right: 5, bottom: 5, left: 5}
-// , width = parseInt(d3.select('#chart').style('width'), 10)
-// , width = width - margin.left - margin.right
-// , barHeight = 20
-// , percent = d3.format('%');
+var margin = {top: 5, right: 5, bottom: 5, left: 5}
+, width = parseInt(d3.select('#svg_A').style('width'), 10)
+, width = width - margin.left - margin.right
+, percent = d3.format('%');
 
 let w = window.innerWidth - 250;
 let h = window.innerHeight - 230; // active window - (dropdowns + footer)
@@ -78,7 +77,13 @@ var svgB = d3.select('#svg_B')
   * selection = 'A' or 'B';
   * filter one of [c,g,w,v] composer, genre, work, voice
   */
-// var loadData = function(selection, filter = false) {
+
+function resize() {
+  width = parseInt(d3.select('#svg_A').style('width'), 10);
+  width = width - margin.left - margin.right;
+  console.log('new width', width)
+}
+
 function loadData(selection, filter = false) {
   // console.log('loadData()',selection,filter)
   let c = searchParams['w'] ? searchParams['w'].substring(0,3) : $('select[id="composer_'+selection+'"]').val()
@@ -463,11 +468,8 @@ function redraw(dim = null) {
 }
 
 $(document).ready(function() {
-  // window.onresize = function(){
-  //   console.log('new:',window.innerWidth,window.innerHeight)
-  //   // drawTree(selection, seq, start=null);
-  // }
-  // reverseTree = true;
+  d3.select(window).on('resize', resize);
+
   var dim = $('input[name="dim_display"]:checked').val()
   // var rooty = $('input[name="root"]').val()
 
