@@ -41,48 +41,39 @@ window.$ = $;
 var margin = {top: 5, right: 5, bottom: 5, left: 5}
 , width = parseInt(d3.select('#svg_A').style('width'), 10)
 , width = width - margin.left - margin.right
-, percent = d3.format('%');
+, percent = d3.format('%')
+, navWidth = parseInt(d3.select('#nav').style('width'), 10);
 
-let w = window.innerWidth - 250;
+let w = width - navWidth;
+// let w = window.innerWidth - 250;
 let h = window.innerHeight - 230; // active window - (dropdowns + footer)
-// let h = 200;
-// let w = 200;
-// let h = 720;
 
 let cluster = d3.layout.cluster()
   .size([w, h]);
   // .size([h, w-220]);
 
 var svgA = d3.select('#svg_A')
-  // .append("div")
-  // .classed("svg-container", true)
   .classed('tree', true)
   .append('svg')
-  // .attr("preserveAspectRatio", "xMinYMin meet")
-  // .attr("viewBox", "0 0 1200 800")
-  // .classed("svg-content-responsive", true)
   .attr('width', w)
   .attr('height', h)
   .append('g')
 
+  // .attr("preserveAspectRatio", "xMinYMin meet")
+  // .attr("viewBox", "0 0 1200 800")
+  // .classed("svg-content-responsive", true)
 
 var svgB = d3.select('#svg_B')
   .append('svg')
   .classed('tree', true)
   .attr('width', w)
-  .attr('height', h)
+  .attr('height', h/2)
   .append('g')
 
 /**
   * selection = 'A' or 'B';
   * filter one of [c,g,w,v] composer, genre, work, voice
   */
-
-function resize() {
-  width = parseInt(d3.select('#svg_A').style('width'), 10);
-  width = width - margin.left - margin.right;
-  console.log('new width', width)
-}
 
 function loadData(selection, filter = false) {
   // console.log('loadData()',selection,filter)
@@ -467,8 +458,16 @@ function redraw(dim = null) {
   }
 }
 
+function resize() {
+  width = parseInt(d3.select('#svg_A').style('width'), 10);
+  width = width - margin.left - margin.right;
+  console.log('new width', width)
+}
+
 $(document).ready(function() {
-  d3.select(window).on('resize', resize);
+  d3.select(window).on('resize', _.debounce(function(){
+    resize();
+  }, 250 ));
 
   var dim = $('input[name="dim_display"]:checked').val()
   // var rooty = $('input[name="root"]').val()
