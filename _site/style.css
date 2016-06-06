@@ -6740,19 +6740,19 @@ h3 {
   border-color: #AE3E20;
   box-shadow: 0px 5px 6px -6px #333;
 }
-#rootA,
-#rootB {
+#sel_A,
+#sel_B {
   float: left;
   width: 980px;
   height: 360px;
   padding: 10px 0 20px 20px;
   margin-left: 10px;
 }
-#rootB {
+#sel_B {
   margin-top: 60px;
   background: azure;
 }
-#rootB h3 {
+#sel_B h3 {
   color: #164893;
 }
 .countA,

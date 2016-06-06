@@ -38,6 +38,12 @@ window.$ = $;
 /**
   * svg orientation
   */
+// var margin = {top: 5, right: 5, bottom: 5, left: 5}
+// , width = parseInt(d3.select('#chart').style('width'), 10)
+// , width = width - margin.left - margin.right
+// , barHeight = 20
+// , percent = d3.format('%');
+
 let w = window.innerWidth - 250;
 let h = window.innerHeight - 230; // active window - (dropdowns + footer)
 // let h = 200;
@@ -48,9 +54,9 @@ let cluster = d3.layout.cluster()
   .size([w, h]);
   // .size([h, w-220]);
 
-var svgA = d3.select('#rootA')
-  .append("div")
-  .classed("svg-container", true)
+var svgA = d3.select('#svg_A')
+  // .append("div")
+  // .classed("svg-container", true)
   .classed('tree', true)
   .append('svg')
   // .attr("preserveAspectRatio", "xMinYMin meet")
@@ -61,7 +67,7 @@ var svgA = d3.select('#rootA')
   .append('g')
 
 
-var svgB = d3.select('#rootB')
+var svgB = d3.select('#svg_B')
   .append('svg')
   .classed('tree', true)
   .attr('width', w)
@@ -510,12 +516,12 @@ $(document).ready(function() {
   })
   $(".toggle-add").on("click",function(){
     console.log('clicked to toggle add')
-    if($("#rootB").hasClass('hidden')) {
+    if($("#sel_B").hasClass('hidden')) {
       $(".toggle-add").text("Remove comparison set")
-      $("#rootB").removeClass("hidden")
+      $("#sel_B").removeClass("hidden")
     } else {
       $(".toggle-add").text("Add comparison set")
-      $("#rootB").addClass("hidden")
+      $("#sel_B").addClass("hidden")
     }
   })
 })
