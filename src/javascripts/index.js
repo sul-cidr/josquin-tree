@@ -34,6 +34,7 @@ import SuffixTree from 'suffix-tree';
 // expose d3, jquery functions to console
 window.d3 = d3;
 window.$ = $;
+window._ = _;
 
 /**
   * svg orientation
@@ -133,15 +134,20 @@ function loadData(selection, filter = false) {
       raw = raw.filter(function(d){
         return d.jrpid == w;
       });
+      // if(raw[0].features.pitch[0].indexOf($('input[name="root"]').val() < 0)){
+      //   console.log('selected root not in features, resetting to first')
+      //   $('input[name="root"]').val(raw[0].features.pitch[0][0])
+      // }
       // TODO: change root to first note: raw[0].features.pitch[0][0]
       // data is sparse, not ensured the existing root is in the work
-      $('input[name="root"]').val(raw[0].features.pitch[0][0])
-      console.log('c,g,w,1st pitch:',c,g,w,raw[0].features.pitch[0][0]) //.features[0].pitch[0][0])
-      // set min-count = 1 for single work
+      // $('input[name="root"]').val(raw[0].features.pitch[0][0])
+      // console.log('c,g,w,1st pitch:',c,g,w,raw[0].features.pitch[0][0]) //.features[0].pitch[0][0])
+      // console.log('pitch features',raw[0].features.pitch[0])
+
+      // always set min-count = 1 for single work
       $('input[name="min-count"]').val(1)
       workArray = getWorks(raw,selection);
       voiceArray = getVoices(workArray,selection);
-
       // console.log('workArray, voiceArray',workArray,voiceArray)
     }
 
@@ -151,13 +157,25 @@ function loadData(selection, filter = false) {
       sequence = buildSeq(raw,d,v)
       $("select[id='voice_A'] option[value='"+v+"']").prop('selected',true)
       selection == 'A' ? apinotesA = sequence : apinotesB = sequence;
-      drawTree(selection, sequence);
-    }
+      // always set min-count = 1 for single work
+      $('input[name="min-count"]').val(1)
+      }
     else {
       sequence = buildSeq(raw,d);
       selection == 'A' ? apinotesA = sequence : apinotesB = sequence;
-      drawTree(selection, sequence);
+      // drawTree(selection, sequence);
     }
+    // test whether root is in sequence
+    if(sequence.indexOf($('input[name="root"]').val()) < 0){
+      console.log('selected root not in sequence, resetting to',sequence[0])
+      $('input[name="root"]').val(sequence[0])
+    }
+    // if any depth 1 elements have no children, set min-count = 1
+    // if(_.filter(,function(elem){return elem.depth==1;}).every(elem => (elem.children))){
+    //   $('input[name="min-count"]').val(1)
+    // }
+    // render sequence
+    drawTree(selection, sequence);
     window.seq = sequence;
   })
 }
@@ -286,6 +304,11 @@ function drawTree(selection, seq, start=null) {
   window.data=data
   window.l = links
   window.n = nodes
+  // if any depth 1 elements have no children, set min-count = 1
+  if(_.filter(nodes,function(elem){return elem.depth==1;}).every(elem => (elem.children)) == false){
+    console.log('one or more level 1 nodes have no children')
+    $('input[name="min-count"]').val(1)
+  }
   // console.log('a link', links[7].source,links[7].target)
   // find min/max counts used to scale nodes and node labels
   var maxCount = d3.max(nodes, function(d){return d.count});
@@ -330,6 +353,7 @@ function drawTree(selection, seq, start=null) {
         if(p_or_r == 'pitch') {
           let rooty = recurseParents(d).reverse();
           console.log('rooty', rooty.join(','))
+          $('input[name="min-count"]').val(1)
           drawTree(selection, seq, rooty.join(','));
         }
       } else if (d3.event.altKey) {
@@ -382,7 +406,6 @@ function drawTree(selection, seq, start=null) {
       .attr("xlink:href", function(d){
         return d.name != 'X'? 'http://josquin.stanford.edu/images/menpat/' + d.name + '.svg' :'x.svg'
       })
-      // .attr("xlink:href", 'http://josquin.stanford.edu/images/menpat/q_q_q_q.svg' )
       .attr("width", 110)
       .attr("height", 13)
       .attr('x', function(d) {
@@ -393,8 +416,6 @@ function drawTree(selection, seq, start=null) {
         return d.depth == 0 ? -20 : d.depth == 1 ?
           -(scaleNode(d.count,[minCount,maxCount])+12) : -5;
       })
-
-    //http://josquin.stanford.edu/images/menpat/q_q_q_q.svg
   }
 
   // counts
@@ -462,6 +483,8 @@ function resize() {
   width = parseInt(d3.select('#svg_A').style('width'), 10);
   width = width - margin.left - margin.right;
   console.log('new width', width)
+  location.reload()
+
 }
 
 $(document).ready(function() {
