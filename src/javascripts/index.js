@@ -25,6 +25,19 @@ var root = '',
     raw = '',
     newRoot=[],
     layout = ''
+    // console.log('loadData()',selection,filter)
+var c = searchParams['w'] ? searchParams['w'].substring(0,3) : $('select[id="composer_A"]').val(),
+g = searchParams['genre'] ? searchParams['w']:$('select[id="genre_A"]').val(),
+w = searchParams['w'] ? searchParams['w']: $('select[id="work_A"]').val(),
+v = searchParams['v'] ? searchParams['v']: $('select[id="voice_A"]').val(),
+a = searchParams['a'] ? searchParams['a'].substr(0, searchParams['a'].length-4): $('input[name="dim_display"]:checked').val(),
+
+root = searchParams['r'] ? searchParams['v']: $('input[name="root"]').val(),
+depth = searchParams['depth'] ? searchParams['depth']: $('input[name="depth"]').val(),
+maxchil = searchParams['maxchil'] ? searchParams['maxchil']: $('input[name="max-children"]').val(),
+mincount = searchParams['mincount'] ? searchParams['mincount']: $('input[name="min-count"]').val(),
+reverse = searchParams['rev'] ? searchParams['rev']: $('input[name="reverse"]').prop('checked'),
+disp = searchParams['disp'] ? searchParams['disp']: $('input[name="count_display"]').val()
 
 import $ from 'jquery';
 import d3 from 'd3';
@@ -46,13 +59,13 @@ var margin = {top: 5, right: 5, bottom: 5, left: 5}
 , percent = d3.format('%')
 , navWidth = parseInt(d3.select('#nav').style('width'), 10);
 
-var w = width - navWidth;
+width = width - navWidth;
 // var h = 300;
-var h = window.innerHeight -200; // active window - (dropdowns + footer)
+var height = window.innerHeight -200; // active window - (dropdowns + footer)
 // var h = window.innerHeight - 230; // active window - (dropdowns + footer)
 
 let cluster = d3.layout.cluster()
-  .size([w, h]);
+  .size([width, height]);
   // .size([h, w-220]);
 
 /**
@@ -61,17 +74,11 @@ let cluster = d3.layout.cluster()
   */
 
 function loadData(selection, filter = false) {
-  // console.log('loadData()',selection,filter)
-  let c = searchParams['w'] ? searchParams['w'].substring(0,3) : $('select[id="composer_'+selection+'"]').val()
-  // let c = $('select[id="composer_'+selection+'"]').val()
-  let g = $('select[id="genre_'+selection+'"]').val()
-  let w = searchParams['w'] ? searchParams['w']: $('select[id="work_'+selection+'"]').val()
-  let v = $('select[id="voice_'+selection+'"]').val()
-  let d = $('input[name="dim_display"]:checked').val()
-  // console.log('load '+d+' for '+c+' -> genre:'+g+'; works:'+w+'; voices:'+v+' into '+selection)
-
+  console.log('loadData() into: '+selection+'; filter:',filter)
+  console.log('active params:',a,c,g,w,v)
+  console.log('active settings:',root,depth,maxchil,mincount,reverse,disp)
   // always get all works for composer/genre
-  let url = 'http://josquin.stanford.edu/cgi-bin/jrp?a='+d+'tree&f=' + c + '&genre='
+  let url = 'http://josquin.stanford.edu/cgi-bin/jrp?a='+a+'tree&f=' + c + '&genre='
   if (g !='') {url += g} else g='all'
   console.log('url:', url);
   d3.json(url, function(error, raw) {
@@ -138,14 +145,14 @@ function loadData(selection, filter = false) {
     // console.log(raw.length+' of '+works.length + ' works; '+voices.length + ' voices')
     // console.log(c,g,w,v,d)
     if(v != 'all'){
-      sequence = buildSeq(raw,d,v)
+      sequence = buildSeq(raw,a,v)
       $("select[id='voice_A'] option[value='"+v+"']").prop('selected',true)
       selection == 'A' ? apinotesA = sequence : apinotesB = sequence;
       // always set min-count = 1 for single work
       $('input[name="min-count"]').val(1)
       }
     else {
-      sequence = buildSeq(raw,d);
+      sequence = buildSeq(raw,a);
       selection == 'A' ? apinotesA = sequence : apinotesB = sequence;
       // drawTree(selection, sequence);
     }
@@ -211,8 +218,8 @@ function drawTree(selection, seq, start=null) {
     .append('svg')
     .classed('tree', true)
     .attr('id','svgA')
-    .attr('width', w)
-    .attr('height', h)
+    .attr('width', width)
+    .attr('height', height)
     .append('g')
 
     // .attr("preserveAspectRatio", "xMinYMin meet")
@@ -223,14 +230,14 @@ function drawTree(selection, seq, start=null) {
     .append('svg')
     .classed('tree', true)
     .attr('id','svgB')
-    .attr('width', w)
-    .attr('height', h/2 -100)
+    .attr('width', width)
+    .attr('height', height/2 -100)
     .append('g')
 
   if(reverseTree) {
     p_or_r == 'pitch' ? svgY = 30 : svgY = 0;
   } else {
-    p_or_r == 'pitch' ? svgY = h+20 : svgY = -20;
+    p_or_r == 'pitch' ? svgY = height+20 : svgY = -20;
   }
 
   // if(p_or_r == 'pitch') {
@@ -257,7 +264,7 @@ function drawTree(selection, seq, start=null) {
   let diagonal = d3.svg.diagonal()
     .projection(function(d) {
       if(p_or_r == 'pitch'){
-        return [d.x, d.y-h];
+        return [d.x, d.y-height];
       } else {
         return [d.y, d.x];
       }
@@ -349,8 +356,8 @@ function drawTree(selection, seq, start=null) {
     .attr('transform', function(d) {
       if(p_or_r == 'pitch'){
         return reverseTree ?
-          `translate(${d.x}, ${h-d.y})` :
-          `translate(${d.x}, ${d.y-h})`;
+          `translate(${d.x}, ${height-d.y})` :
+          `translate(${d.x}, ${d.y-height})`;
       } else {
         return reverseTree ?
           `translate(${200-d.y}, ${d.x})` :
