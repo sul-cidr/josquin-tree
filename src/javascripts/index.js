@@ -6,7 +6,7 @@ var url = require('url'),
     querystring = require('querystring'),
     parsedUrl = url.parse(window.location.href, true, true)
 window.searchParams = querystring.parse(parsedUrl.search.substring(1));
-console.log('searchParams',isEmpty(searchParams)?'empty':searchParams['w']);
+console.log('searchParams',isEmpty(searchParams)?'empty':searchParams);
 
 // w=work,q=root,f=pitch || rhythm || ??,
 
