@@ -6727,7 +6727,7 @@ button.close {
 html,
 body {
   margin: 0;
-  padding-top: 12px;
+  padding: 0;
   height: 100%;
   width: 100%;
 }
@@ -6747,8 +6747,10 @@ h3 {
 #sel_B {
   float: left;
   width: 100%;
-  padding: 10px 0 20px 20px;
   margin-left: 10px;
+}
+#sel_A {
+  padding: 10px 0 20px 20px;
 }
 #sel_B {
   background: azure;

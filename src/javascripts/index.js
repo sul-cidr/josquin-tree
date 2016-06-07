@@ -23,7 +23,8 @@ var root = '',
     svgX = '',
     svgY = '',
     raw = '',
-    newRoot=[]
+    newRoot=[],
+    layout = ''
 
 import $ from 'jquery';
 import d3 from 'd3';
@@ -45,31 +46,14 @@ var margin = {top: 5, right: 5, bottom: 5, left: 5}
 , percent = d3.format('%')
 , navWidth = parseInt(d3.select('#nav').style('width'), 10);
 
-let w = width - navWidth;
-// let w = window.innerWidth - 250;
-let h = window.innerHeight - 230; // active window - (dropdowns + footer)
+var w = width - navWidth;
+// var h = 300;
+var h = window.innerHeight -200; // active window - (dropdowns + footer)
+// var h = window.innerHeight - 230; // active window - (dropdowns + footer)
 
 let cluster = d3.layout.cluster()
   .size([w, h]);
   // .size([h, w-220]);
-
-var svgA = d3.select('#svg_A')
-  .classed('tree', true)
-  .append('svg')
-  .attr('width', w)
-  .attr('height', h)
-  .append('g')
-
-  // .attr("preserveAspectRatio", "xMinYMin meet")
-  // .attr("viewBox", "0 0 1200 800")
-  // .classed("svg-content-responsive", true)
-
-var svgB = d3.select('#svg_B')
-  .append('svg')
-  .classed('tree', true)
-  .attr('width', w)
-  .attr('height', h/2)
-  .append('g')
 
 /**
   * selection = 'A' or 'B';
@@ -89,7 +73,7 @@ function loadData(selection, filter = false) {
   // always get all works for composer/genre
   let url = 'http://josquin.stanford.edu/cgi-bin/jrp?a='+d+'tree&f=' + c + '&genre='
   if (g !='') {url += g} else g='all'
-  // console.log('url:', url);
+  console.log('url:', url);
   d3.json(url, function(error, raw) {
     // url sent a work
     if(searchParams['w']) {
@@ -213,6 +197,61 @@ function buildSeq(raw, dim, voice = false) {
 
 function drawTree(selection, seq, start=null) {
   let p_or_r = $('input[name="dim_display"]:checked').val()
+
+  if(selection == 'B'){
+    // resize & redraw A; draw B
+    console.log('resize & redraw A; draw B')
+  }
+  // remove existing tree, if exists
+  if(svgSet != '' & selection == 'A') {
+    d3.select('#svgA').remove()
+  }
+  // create g elements
+  var svgA = d3.select('#svg_A')
+    .append('svg')
+    .classed('tree', true)
+    .attr('id','svgA')
+    .attr('width', w)
+    .attr('height', h)
+    .append('g')
+
+    // .attr("preserveAspectRatio", "xMinYMin meet")
+    // .attr("viewBox", "0 0 1200 800")
+    // .classed("svg-content-responsive", true)
+
+  var svgB = d3.select('#svg_B')
+    .append('svg')
+    .classed('tree', true)
+    .attr('id','svgB')
+    .attr('width', w)
+    .attr('height', h/2 -100)
+    .append('g')
+
+  if(reverseTree) {
+    p_or_r == 'pitch' ? svgY = 30 : svgY = 0;
+  } else {
+    p_or_r == 'pitch' ? svgY = h+20 : svgY = -20;
+  }
+
+  // if(p_or_r == 'pitch') {
+    svgA.attr('transform', 'translate(0,'+svgY+')');
+    svgB.attr('transform', 'translate(0,'+svgY+')');
+  // }
+  // else {
+    // svgA.attr('transform', 'translate('+svgX+',0)');
+    // svgB.attr('transform', 'translate('+svgX+',0)');
+  // }
+
+  if(selection == "A"){
+    svgSet = svgA
+    window.notesSet = apinotesA
+    counterClass = '.countA'
+  } else if(selection == "B"){
+    svgSet = svgB
+    notesSet = apinotesB
+    counterClass = '.countB'
+  }
+
   // console.log('drawTree() for', p_or_r )
   console.log('drawTree(), selection, start:', selection, start)
   let diagonal = d3.svg.diagonal()
@@ -233,33 +272,6 @@ function drawTree(selection, seq, start=null) {
       }
     });
 
-  if(reverseTree) {
-    p_or_r == 'pitch' ? svgY = 30 : svgY = 0;
-    // svgY = -120;
-  } else {
-    p_or_r == 'pitch' ? svgY = h+20 : svgY = 0;
-    // p_or_r == 'pitch' ? svgY = 200 : svgY = 350;
-    // svgY = 350;
-  }
-
-  // if(p_or_r == 'pitch') {
-  svgA.attr('transform', 'translate(0,'+svgY+')');
-  svgB.attr('transform', 'translate(0,'+svgY+')');
-  // }
-  // else {
-  //   svgA.attr('transform', 'translate('+svgX+',0)');
-  //   svgB.attr('transform', 'translate('+svgX+',0)');
-  // }
-
-  if(selection == "A"){
-    svgSet = svgA
-    window.notesSet = apinotesA
-    counterClass = '.countA'
-    } else if(selection == "B"){
-    svgSet = svgB
-    notesSet = apinotesB
-    counterClass = '.countB'
-  }
 
   var seqArr=[]
   seqArr.push(seq)
@@ -543,6 +555,8 @@ $(document).ready(function() {
     if($("#sel_B").hasClass('hidden')) {
       $(".toggle-add").text("Remove comparison set")
       $("#sel_B").removeClass("hidden")
+      console.log('drawTree(\'B\',seq,\'C\')')
+      drawTree('B',seq,'C')
     } else {
       $(".toggle-add").text("Add comparison set")
       $("#sel_B").addClass("hidden")
