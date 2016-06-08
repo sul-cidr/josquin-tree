@@ -1,43 +1,59 @@
 /** index.js    K. Grossner, D. McClure
   * interface to load API data, render trees
   */
-
+var params = {
+  "c1":"Ock","g1":"all","w1":"all","v1":"all",
+  "c2":"","g2":"all","w2":"all","v2":"all",
+  "a":"pitch","root":"C","depth":2,"maxchil":6,"mincount":3,"reverse": false,
+  "quant":"raw","display":"1up"
+}
+window.params = params;
 var url = require('url'),
-    querystring = require('querystring'),
-    parsedUrl = url.parse(window.location.href, true, true)
+  querystring = require('querystring'),
+  parsedUrl = url.parse(window.location.href, true, true)
 window.searchParams = querystring.parse(parsedUrl.search.substring(1));
-console.log('searchParams',isEmpty(searchParams)?'empty':searchParams);
+if(isEmpty(searchParams)){
+  searchParams.c1 = params.c1
+  location.href = location.href + '?'+querystring.stringify(searchParams)
+  // alert('need at least one composer')
+}
+console.log('searchParams',isEmpty(searchParams)?'empty':_.each(searchParams,function(val,key){console.log(key,val)}));
+// for k in params, if in params{} replace
+_.each(searchParams, function(val,key){
+  params[key] = val;
+})
 
+$('select[id="composer_A"] option[value="'+searchParams.c1+'"]').prop('selected',true)
+$('select[id="genre_A"] option[value="'+searchParams.g1+'"]').prop('selected',true)
+$('select[id="work_A"] option[value="'+searchParams.w1+'"]').prop('selected',true)
+
+// $('select>option[value='+params.c1+']').prop('selected', true);
+// $('select>option[value='+params.g1+']').prop('selected', true);
+// $('select>option[value='+params.w1+']').prop('selected', true);
+// $('select>option[value='+params.v1+']').prop('selected', true);
 // w=work,q=root,f=pitch || rhythm || ??,
 
 var root = '',
-    apitreeA = '',
-    apitreeB = '',
-    apinotesA = new Array,
-    apinotesB = new Array,
+    apitreeA = '', apitreeB = '',
+    apinotesA = new Array, apinotesB = new Array,
     sequence = '', workArray = [], voiceArray = [],
-    notesSet = '',
-    svgSet = '',
-    counterClass = '',
-    reverseTree = '',
-    svgX = '',
-    svgY = '',
-    raw = '',
+    notesSet = '', svgSet = '',
+    counterClass = '', reverseTree = '',
+    raw = '', svgX = '', svgY = '',
     newRoot=[],
     layout = ''
-    // console.log('loadData()',selection,filter)
-var c = searchParams['w'] ? searchParams['w'].substring(0,3) : $('select[id="composer_A"]').val(),
-g = searchParams['genre'] ? searchParams['w']:$('select[id="genre_A"]').val(),
-w = searchParams['w'] ? searchParams['w']: $('select[id="work_A"]').val(),
-v = searchParams['v'] ? searchParams['v']: $('select[id="voice_A"]').val(),
-a = searchParams['a'] ? searchParams['a'].substr(0, searchParams['a'].length-4): $('input[name="dim_display"]:checked').val(),
 
-root = searchParams['r'] ? searchParams['v']: $('input[name="root"]').val(),
-depth = searchParams['depth'] ? searchParams['depth']: $('input[name="depth"]').val(),
-maxchil = searchParams['maxchil'] ? searchParams['maxchil']: $('input[name="max-children"]').val(),
-mincount = searchParams['mincount'] ? searchParams['mincount']: $('input[name="min-count"]').val(),
-reverse = searchParams['rev'] ? searchParams['rev']: $('input[name="reverse"]').prop('checked'),
-disp = searchParams['disp'] ? searchParams['disp']: $('input[name="count_display"]').val()
+// c = $('select[id="composer_A"]').val(),
+// g = $('select[id="genre_A"]').val(),
+// w = $('select[id="work_A"]').val(),
+// v = $('select[id="voice_A"]').val(),
+// a = $('input[name="dim_display"]:checked').val() searchParams['a'].substr(0, searchParams['a'].length-4): ,
+// root = $('input[name="root"]').val(),
+// depth = $('input[name="depth"]').val(),
+// maxchil = $('input[name="max-children"]').val(),
+// mincount = $('input[name="min-count"]').val(),
+// reverse = $('input[name="reverse"]').prop('checked'),
+// disp = $('input[name="quant_format"]').val()
 
 import $ from 'jquery';
 import d3 from 'd3';
@@ -49,7 +65,8 @@ import SuffixTree from 'suffix-tree';
 window.d3 = d3;
 window.$ = $;
 window._ = _;
-
+window.q = querystring;
+window.u = url;
 /**
   * svg orientation
   */
@@ -74,27 +91,25 @@ let cluster = d3.layout.cluster()
   */
 
 function loadData(selection, filter = false) {
-  console.log('loadData() into: '+selection+'; filter:',filter)
-  console.log('active params:',a,c,g,w,v)
-  console.log('active settings:',root,depth,maxchil,mincount,reverse,disp)
+  console.log('loadData() into: '+selection)
+  console.log('active params:',params)
   // always get all works for composer/genre
-  let url = 'http://josquin.stanford.edu/cgi-bin/jrp?a='+a+'tree&f=' + c + '&genre='
-  if (g !='') {url += g} else g='all'
+  let url = 'http://josquin.stanford.edu/cgi-bin/jrp?a='+params.a+'tree&f=' + params.c1 + '&genre='
+  if (params.g1 !='') {url += params.g1} else params.g1='all'
   console.log('url:', url);
   d3.json(url, function(error, raw) {
     // url sent a work
-    if(searchParams['w']) {
-      filter = 'w';
+    if(searchParams.w1) {
+      filter = 'w1';
       workArray = getWorks(raw,selection);
     }
     // initial load or composer or genre changed:
-    if(filter == false || filter == 'c' || filter == 'g') {
+    if(filter == false || filter == 'c1' || filter == 'g1') {
       // set work & genre to 'all' if necessary
-      if(w != 'all' || g != 'all') {
-        // console.log('filter =',filter)
-        w = 'all';
-        g = 'all';
-        v = 'all';
+      if(params['w1'] != 'all' || params['g1'] != 'all') {
+        params['w1'] = 'all';
+        params['g1'] = 'all';
+        params['v1'] = 'all';
       }
       /**
         * clear works & voices dropdown, re-populate
@@ -111,19 +126,22 @@ function loadData(selection, filter = false) {
           // "<option value="+works[i].jrpid+">"+works[i].title+"</option>"
         )
       }
+      $('select[id="work_A"] option[value="'+params.w1+'"]').prop('selected',true);
       voiceArray = getVoices(workArray,selection);
-    } // end if(filter == false)
 
-    if(w != 'all') {
+    }
+    // end if(filter == false)
+
+    if(params['w1'] != 'all') {
       // a single work, by url or dropdown
       // ensure composer, genre, work options selected
-      $('select[id="composer_'+selection+'"]').val(c);
+      $('select[id="composer_'+selection+'"]').val(params['c1']);
       // TODO: look up genre and set dropdown
-      $('select[id="genre_'+selection+'"]').val(g);
-      $('select[id="work_'+selection+'"]').val(w);
+      $('select[id="genre_'+selection+'"]').val(params['g1']);
+      $('select[id="work_'+selection+'"]').val(params['w1']);
 
       raw = raw.filter(function(d){
-        return d.jrpid == w;
+        return d.jrpid == params['w1'];
       });
       // if(raw[0].features.pitch[0].indexOf($('input[name="root"]').val() < 0)){
       //   console.log('selected root not in features, resetting to first')
@@ -144,15 +162,15 @@ function loadData(selection, filter = false) {
 
     // console.log(raw.length+' of '+works.length + ' works; '+voices.length + ' voices')
     // console.log(c,g,w,v,d)
-    if(v != 'all'){
-      sequence = buildSeq(raw,a,v)
-      $("select[id='voice_A'] option[value='"+v+"']").prop('selected',true)
+    if(params['v1'] != 'all'){
+      sequence = buildSeq(raw,params['a'],params['v1'])
+      $("select[id='voice_A'] option[value='"+params['v1']+"']").prop('selected',true)
       selection == 'A' ? apinotesA = sequence : apinotesB = sequence;
       // always set min-count = 1 for single work
       $('input[name="min-count"]').val(1)
       }
     else {
-      sequence = buildSeq(raw,a);
+      sequence = buildSeq(raw,params['a']);
       selection == 'A' ? apinotesA = sequence : apinotesB = sequence;
       // drawTree(selection, sequence);
     }
@@ -313,7 +331,7 @@ function drawTree(selection, seq, start=null) {
   let depth = Number($('input[name="depth"]').val());
   let maxChildren = Number($('input[name="max-children"]').val());
   let minCountDisplay = Number($('input[name="min-count"]').val());
-  let countDisplay = $('input[name="count_display"]:checked').val();
+  let countDisplay = $('input[name="quant_format"]:checked').val();
   // console.log('countDisplay',countDisplay)
 
   // let data = tree.query(root, depth, maxChildren, 1);
@@ -537,21 +555,29 @@ $(document).ready(function() {
     }
     loadData("A", false)
   })
+
   $(".b-load").click(function(){
     // console.log('b-load this',this.value)
     loadData(this.value);
   });
   $(".select-composer").change(function(){
-    loadData(this.id.substr(-1), 'c')
-    console.log(this.value, this.id.substr(-1))
+    searchParams.c1 = this.value;
+    location.href=location.origin+'/?'+querystring.stringify(searchParams)
+    // document.location.search = querystring.stringify(params.c1)
+    // loadData(this.id.substr(-1), 'c')
+    console.log('changed composer to', this.value, this.id.substr(-1))
   })
   $(".select-genre").change(function(){
-    loadData(this.id.substr(-1), 'g')
-    console.log(this.value)
+    searchParams.g1 = this.value;
+    location.href=location.origin+'/?'+querystring.stringify(searchParams)
+    // loadData(this.id.substr(-1), 'g')
+    console.log('changed genre to', this.value)
   })
   $(".select-work").change(function(){
-    loadData(this.id.substr(-1), 'w')
-    console.log(this.value)
+    searchParams.w1 = this.value;
+    location.href=location.origin+'/?'+querystring.stringify(searchParams)
+    // loadData(this.id.substr(-1), 'w')
+    console.log('changed work to', this.value)
   })
   $(".select-voice").change(function(){
     loadData(this.id.substr(-1), 'v')
@@ -576,6 +602,9 @@ $(document).ready(function() {
   * selection, filter=false
   */
 loadData('A', false);
+if(params.display=='2up'){
+  loadData('B', false);
+}
 
 function getWorks(raw, selection){
   /**
