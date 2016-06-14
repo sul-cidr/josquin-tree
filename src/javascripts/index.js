@@ -91,9 +91,9 @@ function loadData(selection) {
     window.r=raw;
     console.log('active params:',params)
     // hold all works for composer
-    workArray = getWorks(raw,selection);
+    workArray = getWorks(raw,selection).sort(sortByTitle);
     // composer changed, reset genre, work, voice params
-    if(filter == 'c') {
+    if(filter == 'c' || filter == false) {
     // if(filter == 'c' || filter == 'g') {
       // console.log('filter is "c"')
       // // console.log('filter:',filter)
@@ -111,6 +111,15 @@ function loadData(selection) {
       /**
         * clear works & voices dropdown, re-populate
         */
+      $("#work_"+selection).find('option').remove()
+      $("#work_"+selection).append('<option value="all">All</option>')
+
+      for(let i in workArray){
+        $("#work_"+selection).append(
+          "<option value="+workArray[i].jrpid+">"+workArray[i].title+"</option>"
+        )
+      }
+      $('select[id="work_'+selection+'"] option[value="'+params.w+'"]').prop('selected',true);
       // workArray = getWorks(raw,selection);
       voiceArray = getVoices(workArray,selection);
     }
