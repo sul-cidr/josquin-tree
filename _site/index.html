@@ -5,11 +5,11 @@
     <div id="nav">
       <form class="form-render">
       <form role="form"></form>
-        <div id="radio_dim" class="form-group">
+        <div id="feature_type" class="form-group">
           <label class="radio-inline"></label>
-          <input type="radio" name="dim_display" value="pitch" checked="checked">&nbsp;Pitch
+          <input type="radio" id="r_pitch" name="r_feature" value="pitch" checked="checked">&nbsp;Pitch
           <label class="radio-inline"></label>
-          <input type="radio" name="dim_display" value="rhythm">&nbsp;Rhythm
+          <input type="radio" id='r_rhythm' name="r_feature" value="rhythm">&nbsp;Rhythm
         </div>
       </form>
       <div class="form-group">
@@ -36,11 +36,11 @@
       <form role="form"></form>
         <div id="radio_count" class="form-group">
           <label class="radio-inline"></label>
-          <input type="radio" name="count_display" value="raw" checked="">&nbsp;Raw
+          <input type="radio" name="quant_format" value="raw" checked="">&nbsp;Raw
           <label class="radio-inline"></label>
-          <input type="radio" name="count_display" value="pct">&nbsp;Pct
+          <input type="radio" name="quant_format" value="pct">&nbsp;Pct
           <label class="radio-inline"></label>
-          <input type="radio" name="count_display" value="none">&nbsp;None
+          <input type="radio" name="quant_format" value="none">&nbsp;None
         </div>
       </form>
       <button id="b_render" class="btn btn-primary">Render Tree(s)</button>

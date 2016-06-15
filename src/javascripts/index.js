@@ -30,6 +30,12 @@ if(isEmpty(searchParams)){
   searchParams.c = params.c //need at least one composer
   location.href = location.href + '?'+querystring.stringify(searchParams)
 }
+// if(searchParams.a == 'rhythm'){
+//   $(".toggle-add").addClass("hidden");
+//   searchParams.root = 'w_b';
+// } else {
+//   delete searchParams.root;
+// }
 
 // put values from url into params
 _.each(searchParams, function(val,key){
@@ -70,13 +76,14 @@ let cluster = d3.layout.cluster()
   */
 
 function loadData(selection) {
-  console.log('loadData() selection, filter: '+selection,params.filter)
+  // console.log('loadData() selection, filter: '+selection,params.filter)
 
   // ensure selections correspond to params in effect
   $('select[id="composer_'+selection+'"] option[value="'+params.c+'"]').prop('selected',true)
   $('select[id="genre_'+selection+'"] option[value="'+params.g+'"]').prop('selected',true)
   $('select[id="work_'+selection+'"] option[value="'+params.w+'"]').prop('selected',true)
   $('select[id="voice_'+selection+'"] option[value="'+params.v+'"]').prop('selected',true)
+  $('#r_'+params.a).prop('checked',true)
 
   // url sent a work (not all), set composer
   if(searchParams.w && searchParams.w != 'all') {
@@ -180,17 +187,26 @@ function loadData(selection) {
       selection == 'A' ? apinotesA = sequence : apinotesB = sequence;
       // drawTree(selection, sequence);
       }
-    // test whether root is in sequence
-    if(sequence.indexOf($('input[name="root"]').val()) < 0){
-      console.log('selected root not in sequence, resetting to',sequence[0])
-      $('input[name="root"]').val(sequence[0])
+
+    if(params.a == 'pitch'){
+      // test whether root is in sequence
+      if(sequence.indexOf($('input[name="root"]').val()) < 0){
+        console.log('root',$('input[name="root"]').val())
+        console.log('selected root not in sequence, resetting to',sequence[0])
+        $('input[name="root"]').val(sequence[0])
+      }
+    } else if(params.a == 'rhythm') {
+      var rooty = sequence[0];
+      $('input[name="root"]').val(sequence[0]);
     }
+
     // if any depth 1 elements have no children, set min-count = 1
     // if(_.filter(,function(elem){return elem.depth==1;}).every(elem => (elem.children))){
     //   $('input[name="min-count"]').val(1)
     // }
     // render sequence
-    drawTree(selection, sequence);
+    drawTree(selection, sequence, rooty);
+    // drawTree(selection, sequence);
     window.seq = sequence;
   })
 }
@@ -227,8 +243,9 @@ function buildSeq(raw, dim, voice = false) {
 }
 
 function drawTree(selection, seq, start=null) {
-  let p_or_r = $('input[name="dim_display"]:checked').val()
-
+  let featureType = params.a
+  // let featureType = $('input[name="feature"]:checked').val()
+  console.log('drawTree() start', start)
   if(selection == 'B'){
     // resize & redraw A; draw B
     console.log('resize & redraw A; draw B')
@@ -237,18 +254,14 @@ function drawTree(selection, seq, start=null) {
   if(svgSet != '' & selection == 'A') {
     d3.select('#svgA').remove()
   }
-  // create g elements
+  // create svg and g elements
   var svgA = d3.select('#svg_A')
     .append('svg')
     .classed('tree', true)
     .attr('id','svgA')
     .attr('width', width)
-    .attr('height', height)
+    .attr('height', height*0.67)
     .append('g')
-
-    // .attr("preserveAspectRatio", "xMinYMin meet")
-    // .attr("viewBox", "0 0 1200 800")
-    // .classed("svg-content-responsive", true)
 
   var svgB = d3.select('#svg_B')
     .append('svg')
@@ -259,12 +272,12 @@ function drawTree(selection, seq, start=null) {
     .append('g')
 
   if(reverseTree) {
-    p_or_r == 'pitch' ? svgY = 30 : svgY = 0;
+    featureType == 'pitch' ? svgY = 30 : svgY = 0;
   } else {
-    p_or_r == 'pitch' ? svgY = height+20 : svgY = -20;
+    featureType == 'pitch' ? svgY = height+20 : svgY = -20;
   }
 
-  // if(p_or_r == 'pitch') {
+  // if(featureType == 'pitch') {
     svgA.attr('transform', 'translate(0,'+svgY+')');
     svgB.attr('transform', 'translate(0,'+svgY+')');
   // }
@@ -283,20 +296,21 @@ function drawTree(selection, seq, start=null) {
     counterClass = '.countB'
   }
 
-  // console.log('drawTree() for', p_or_r )
-  console.log('drawTree(), selection, start:', selection, start)
+  // console.log('drawTree() for', featureType )
+  // console.log('drawTree(), selection, start:', selection, start)
   let diagonal = d3.svg.diagonal()
     .projection(function(d) {
-      if(p_or_r == 'pitch'){
+      if(featureType == 'pitch'){
         return [d.x, d.y-height];
       } else {
         return [d.y, d.x];
+        // return [d.y, d.x];
       }
       });
 
   let diagonalR = d3.svg.diagonal()
     .projection(function(d) {
-      if(p_or_r == 'pitch'){
+      if(featureType == 'pitch'){
         return [d.x, h-d.y ];
       } else {
         return [200-d.y, d.x];
@@ -317,28 +331,28 @@ function drawTree(selection, seq, start=null) {
   // display counters
   let counter = `${seq.length.toLocaleString()}  `;
   // console.log(counter);
-  $(counterClass).text( p_or_r=='pitch'?counter+' notes':counter+' rhythms')
+  $(counterClass).text( featureType=='pitch'?counter+' notes':counter+' rhythms')
   // $(counterClass).text(`${notesSet.length.toLocaleString()} notes`)
 
   eval(svgSet).text('');
 
   if(start == null) {
-    if(p_or_r == 'pitch') {
-        root = $('input[name="root"]').val();
-      } else {
-        root = 'w_b';
-        $('input[name="root"]').val(root);
-      }
-    } else {
-      root = validateRoot(start);
-      // console.log('start(root)', root);
-      }
+    if(featureType == 'pitch') {
+      root = $('input[name="root"]').val();
+    }
+    // else {
+    //   root = 'w_b';
+    //   $('input[name="root"]').val(root);
+    // }
+  } else {
+    root = validateRoot(start);
+    // console.log('start(root)', root);
+  }
 
   let depth = Number($('input[name="depth"]').val());
   let maxChildren = Number($('input[name="max-children"]').val());
   let minCountDisplay = Number($('input[name="min-count"]').val());
-  let countDisplay = $('input[name="quant_format"]:checked').val();
-  // console.log('countDisplay',countDisplay)
+  let quantFormat = $('input[name="quant_format"]:checked').val();
 
   // let data = tree.query(root, depth, maxChildren, 1);
   let data = tree.query(root, depth, maxChildren, minCountDisplay);
@@ -361,7 +375,14 @@ function drawTree(selection, seq, start=null) {
     .data(links)
     .enter()
     .append('path')
-    .attr('class', 'link')
+    // .attr('class', 'link')
+    .attr('class', function(d) {
+      if(d.target.count < minCountDisplay && d.depth > 0) {
+        return 'hidden-link'
+      } else {
+        return 'link'
+      }
+    })
     .attr('d', reverseTree ? diagonalR : diagonal)
     .attr('stroke-width', 4)
 
@@ -370,15 +391,16 @@ function drawTree(selection, seq, start=null) {
     .enter()
     .append('g')
     .attr('class', function(d){
-      return 'node'
-      // if(d.count < minCountDisplay && d.depth > 0) {
-      //   console.log('hiding',d)
-      //   return 'hidden-node'
-      // } else { return 'node'}
+      // return 'node'
+      // experiment
+      if(d.count < minCountDisplay && d.depth > 0) {
+        // console.log('hiding',d)
+        return 'hidden-node'
+      } else { return 'node'}
     })
     // .attr('class', 'node')
     .attr('transform', function(d) {
-      if(p_or_r == 'pitch'){
+      if(featureType == 'pitch'){
         return reverseTree ?
           `translate(${d.x}, ${height-d.y})` :
           `translate(${d.x}, ${d.y-height})`;
@@ -393,7 +415,7 @@ function drawTree(selection, seq, start=null) {
       newRoot = [];
       window.n = d;
       if (d3.event.shiftKey) {
-        if(p_or_r == 'pitch') {
+        if(featureType == 'pitch') {
           let rooty = recurseParents(d).reverse();
           console.log('rooty', rooty.join(','))
           $('input[name="min-count"]').val(1)
@@ -413,9 +435,9 @@ function drawTree(selection, seq, start=null) {
     .attr('fill',function() {
       return counterClass === '.countA' ? '#BC5330' : '#1F5FA2'
     })
-    .append('text')
+    // .append('text')
 
-  if(p_or_r == 'pitch') {
+  if(featureType == 'pitch') {
     // note letters
     node.append('text')
       // .attr('x', 0)
@@ -460,7 +482,7 @@ function drawTree(selection, seq, start=null) {
           -(scaleNode(d.count,[minCount,maxCount])+12) : -5;
       })
   }
-
+  // console.log('quantFormat', quantFormat)
   // counts
   node.append('text')
     .attr('dx', function(d) {
@@ -480,11 +502,11 @@ function drawTree(selection, seq, start=null) {
       return !d.children;
     })
     .html(function(d) {
-      if (d.depth == 0 || countDisplay == 'none') {
+      if (d.depth == 0 || quantFormat == 'none') {
         return '';
-      } else if (countDisplay == 'raw') {
+      } else if (quantFormat == 'raw') {
         return `${d.count.toLocaleString()}`;
-      } else if (countDisplay == 'pct') {
+      } else if (quantFormat == 'pct') {
         if (d.depth == 2) {
           return `${((d.count/d.parent.count)*100).toFixed(1).toLocaleString()}`;
         } else if (d.depth == 1) {
@@ -587,12 +609,13 @@ $(document).ready(function() {
     }
   })
 
-  var dim = $('input[name="dim_display"]:checked').val()
+  var dim = $('input[name="feature"]:checked').val()
   // var rooty = $('input[name="root"]').val()
 
   $('#b_render').click(function(){
     redraw(dim)
   })
+
   $("#rcheck").change(function (){
     if(this.checked) {
       reverseTree = true;
@@ -602,15 +625,23 @@ $(document).ready(function() {
   $("#radio_count").change(function(){
     redraw(dim)
   })
-  $("#radio_dim").change(function(){
-    let feature = $('input[name="dim_display"]:checked').val();
-    console.log('radio_dim',feature)
+  $("#feature_type").change(function(){
+    let feature = $('input[name="r_feature"]:checked').val();
+    console.log('feature_type',feature)
     if (feature == 'pitch') {
-      $('input[name="root"]').val('D')
+      searchParams.a = 'pitch'
+      location.href=location.origin+'/?'+querystring.stringify(searchParams);
+      // params.a = 'pitch'
+      $('input[name="root"]').val('C')
       $(".toggle-add").removeClass("hidden")
     } else {
-      $(".toggle-add").addClass("hidden")
+      searchParams.a = 'rhythm'
+      // searchParams.root = 'w_b'
+      // params.a = 'rhythm'
+      location.href=location.origin+'/?'+querystring.stringify(searchParams);
+      // $(".toggle-add").addClass("hidden")
     }
+    // location.href=location.origin+'/?'+querystring.stringify(searchParams);
     loadData("A", false)
   })
 
@@ -714,7 +745,7 @@ function sortBy(a,b) {
 // g = $('select[id="genre_A"]').val(),
 // w = $('select[id="work_A"]').val(),
 // v = $('select[id="voice_A"]').val(),
-// a = $('input[name="dim_display"]:checked').val() searchParams['a'].substr(0, searchParams['a'].length-4): ,
+// a = $('input[name="feature"]:checked').val() searchParams['a'].substr(0, searchParams['a'].length-4): ,
 // root = $('input[name="root"]').val(),
 // depth = $('input[name="depth"]').val(),
 // maxchil = $('input[name="max-children"]').val(),

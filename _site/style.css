@@ -6779,7 +6779,8 @@ svg:not(:root) {
   fill: none;
   stroke: #eee;
 }
-.tree .hidden-node {
+.tree .hidden-node,
+.tree .hidden-link {
   display: none;
 }
 .tree .node {
@@ -6816,7 +6817,7 @@ svg:not(:root) {
   margin-bottom: 0;
 }
 #radio_count,
-#radio_dim {
+#feature_type {
   margin-left: -25px;
   display: inline-flex;
 }
