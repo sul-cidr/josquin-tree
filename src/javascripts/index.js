@@ -94,20 +94,9 @@ function loadData(selection) {
     workArray = getWorks(raw,selection).sort(sortByTitle);
     // composer changed, reset genre, work, voice params
     if(filter == 'c' || filter == false) {
-    // if(filter == 'c' || filter == 'g') {
-      // console.log('filter is "c"')
-      // // console.log('filter:',filter)
       params.w = 'all';
       params.v = 'all';
 
-      // if(params.w != 'all' || params.g != 'all') {
-      //   params.g = 'all';
-      // }
-      // if(params.w != 'all' || params.g != 'all') {
-      //   params.g = 'all';
-      //   params.w = 'all';
-      //   params.v = 'all';
-      // }
       /**
         * clear works & voices dropdown, re-populate
         */
@@ -156,11 +145,6 @@ function loadData(selection) {
       $('select[id="composer_'+selection+'"]').val(params.c);
       $('select[id="work_'+selection+'"]').val(params.w);
 
-      // if(raw[0].features.pitch[0].indexOf($('input[name="root"]').val() < 0)){
-      //   console.log('selected root not in features, resetting to first')
-      //   $('input[name="root"]').val(raw[0].features.pitch[0][0])
-      // }
-
       // always set min-count = 1 for single work
       $('input[name="min-count"]').val(1)
       filteredWorkArray = getWorks(raw,selection);
@@ -181,7 +165,6 @@ function loadData(selection) {
       }
       $('select[id="work_'+selection+'"] option[value="'+params.w+'"]').prop('selected',true);
     }
-
 
     // voice
     if(params['v'] != 'all'){
@@ -533,7 +516,7 @@ function redraw(dim = null) {
   let rooty = validateRoot($('input[name="root"]').val())
   if(dim == 'pitch'){
     drawTree("A",apinotesA, rooty);
-    drawTree("B",apinotesB, rooty);
+    // drawTree("B",apinotesB, rooty);
   } else {
     drawTreeR("A",dim)
   }
@@ -568,8 +551,8 @@ $(document).ready(function() {
     // console.clear()
     console.log('changed genre to', this.value);
     searchParams.g = this.value;
-    // searchParams.w = 'all';
-    // searchParams.v = 'all';
+    searchParams.w = 'all';
+    searchParams.v = 'all';
     searchParams.filter='g';
     location.href=location.origin+'/?'+querystring.stringify(searchParams);
     // loadData(this.id.substr(-1), 'g')
