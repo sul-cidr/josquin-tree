@@ -41,7 +41,7 @@ if(isEmpty(searchParams)){
 _.each(searchParams, function(val,key){
   params[key] = val;
 })
-
+// console.log('params now', params)
 var root = '',
     apitreeA = '', apitreeB = '',
     apinotesA = new Array, apinotesB = new Array,
@@ -89,6 +89,9 @@ function loadData(selection) {
       params.c = searchParams.w.substring(0,3)
     filter = 'w';
   }
+  if(searchParams.v != 'all'){
+    filter = 'v';
+  }
   // always get all works for composer
   let url = 'http://josquin.stanford.edu/cgi-bin/jrp?a='+params.a+'tree&f=' + params.c + '&genre=';
   console.log('url:', url);
@@ -123,9 +126,10 @@ function loadData(selection) {
       raw = raw.filter(function(d){
         return d.genre == params.g;
       });
+      console.log('filtered genre ', params.g)
       filteredWorkArray = getWorks(raw,selection);
       voiceArray = getVoices(filteredWorkArray,selection);
-      console.log('filtered genre raw',raw)
+
 
       $("#work_"+selection).find('option').remove()
       $("#work_"+selection).append('<option value="all">All</option>')
@@ -139,12 +143,11 @@ function loadData(selection) {
     }
 
     if(params.w != 'all' ) {
-    // if(params.w != 'all' && params.g == 'all') {
       // a single work, by url or dropdown
       raw = raw.filter(function(d){
         return d.jrpid == params.w;
       });
-      console.log('single work raw',raw)
+      console.log('filtered work ', params.w, raw)
 
       // ensure composer, genre, work options selected
       $('select[id="genre_'+selection+'"]').val(raw[0].genre);
@@ -173,11 +176,26 @@ function loadData(selection) {
     }
 
     // voice
-    if(params['v'] != 'all'){
+    if(params.v != 'all') {
+      console.log('params.v != all')
+      console.log(raw)
       sequence = buildSeq(raw,params.a,params.v)
       $('select[id="voice_'+selection+'"] option[value="'+params.v+'"]').prop('selected',true)
       // $("select[id='voice_"+selection+"'] option[value='"+params.v+"']").prop('selected',true)
       selection == 'A' ? apinotesA = sequence : apinotesB = sequence;
+      voiceArray = getVoices(workArray,selection);
+
+      // clear, then re-populate works dropdown
+      $("#work_"+selection).find('option').remove()
+      $("#work_"+selection).append('<option value="all">All</option>')
+
+      for(let i in workArray){
+        $("#work_"+selection).append(
+          "<option value="+workArray[i].jrpid+">"+workArray[i].title+"</option>"
+        )
+      }
+
+      $('select[id="voice_'+selection+'"] option[value="'+params.v+'"]').prop('selected',true);
       // always set min-count = 1 for single work
       $('input[name="min-count"]').val(1)
       }
@@ -211,7 +229,7 @@ function loadData(selection) {
 }
 
 function buildSeq(raw, dim, voice = false) {
-  // console.log('buildSeq()',dim,voice)
+  console.log('buildSeq()',dim,voice)
   var seq = new(Array);
   if (!voice) {
     for(let r of raw) {
@@ -236,7 +254,7 @@ function buildSeq(raw, dim, voice = false) {
         }
       }
     }
-    // console.log('notes for',voice, notes)
+    console.log('notes for',voice, seq)
   }
   return seq
 }
@@ -535,12 +553,12 @@ function recurseParents(node) {
 function redraw(dim = null) {
   console.log('redrew')
   let rooty = validateRoot($('input[name="root"]').val())
-  if(dim == 'pitch'){
+  // if(dim == 'pitch'){
     drawTree("A",apinotesA, rooty);
     // drawTree("B",apinotesB, rooty);
-  } else {
-    drawTreeR("A",dim)
-  }
+  // } else {
+  //   drawTreeR("A",dim)
+  // }
 }
 
 function resize() {
@@ -588,10 +606,10 @@ $(document).ready(function() {
   })
   $(".select-voice").change(function(){
     // console.clear()
-    console.log('changed voice to', this.value)
     searchParams.v = this.value;
     searchParams.filter='v';
-    location.href=location.origin+'/jrp?'+querystring.stringify(searchParams)
+    console.log('voice changed to ' +this.value+', searchParams now',searchParams)
+    location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams)
 
     // loadData(this.id.substr(-1), 'v')
   })
