@@ -8,7 +8,7 @@ module.exports = {
 
   dist: {
     src: 'src/stylesheets/index.less',
-    dest: '<%= site %>/style.css'
+    dest: '<%= site %>/jrp/style.css'
   }
 
 };

@@ -9,6 +9,7 @@ module.exports = function(grunt) {
 
   require('load-grunt-config')(grunt, {
     loadGruntTasks: false,
+    // data: { site: '_site/jrp' }
     data: { site: '_site' }
   });
 

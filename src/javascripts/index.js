@@ -14,7 +14,7 @@ window.u = url;
 
 // defaults
 var params = {
-  "c":"Ock","g":"all","w":"all","v":"all",
+  "c":"Obr","g":"all","w":"all","v":"all",
   // "c2":"Pip","g2":"all","w2":"all","v2":"all",
   "a":"pitch","root":"C","depth":2,"maxchil":6,"mincount":3,"reverse": false,
   "quant":"raw","display":"1up","filter":false
@@ -404,7 +404,7 @@ function drawTree(selection, seq, start=null) {
         return reverseTree ?
           `translate(${d.x}, ${height-d.y})` :
           `translate(${d.x}, ${d.y-height})`;
-      } else {
+      } else if(featureType == 'rhythm'){
         return reverseTree ?
           `translate(${200-d.y}, ${d.x})` :
           // `translate(${650-d.y}, ${d.x})` :
