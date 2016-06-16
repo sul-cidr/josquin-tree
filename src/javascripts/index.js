@@ -56,18 +56,17 @@ var root = '',
   * svg orientation
   */
 var margin = {top: 5, right: 5, bottom: 5, left: 5}
-  , width = parseInt(d3.select('#svg_A').style('width'), 10)
-  , width = width - margin.left - margin.right
+  , width = parseInt(d3.select('#svg_A').style('width'), 10) - margin.left - margin.right
   , percent = d3.format('%')
-  , navWidth = parseInt(d3.select('#nav').style('width'), 10);
+  , navWidth = parseInt(d3.select('#nav').style('width'), 10)
+  // , width = width - margin.left - margin.right;
 
-width = width - navWidth;
 // var h = 300;
-var height = window.innerHeight -200; // active window - (dropdowns + footer)
-// var h = window.innerHeight - 230; // active window - (dropdowns + footer)
+var height = window.innerHeight; // active window - (dropdowns + footer)
 
 let cluster = d3.layout.cluster()
-  .size([width, height]);
+  // .size([height, width]);
+  .size(params.a == 'pitch' ? [width- (navWidth), height - 230] : [height - 180,width - (navWidth*2)]);
   // .size([h, w-220]);
 
 /**
@@ -302,7 +301,7 @@ function drawTree(selection, seq, start=null) {
     .projection(function(d) {
       if(featureType == 'pitch'){
         return [d.x, d.y-height];
-      } else {
+      } else if(featureType == 'rhythm'){
         return [d.y, d.x];
         // return [d.y, d.x];
       }
@@ -311,8 +310,8 @@ function drawTree(selection, seq, start=null) {
   let diagonalR = d3.svg.diagonal()
     .projection(function(d) {
       if(featureType == 'pitch'){
-        return [d.x, h-d.y ];
-      } else {
+        return [d.x, height-d.y ];
+      } else if(featureType == 'rhthym'){
         return [200-d.y, d.x];
       }
     });
