@@ -6,12 +6,13 @@ TODO 31 May 2016
   - w/reverse
   - pitch
   - rhythm
-- on add comparison set -> shrink set A; A & B share screen equally
+- on add pitch comparison set -> shrink set A; A & B share screen equally
+  - no comparison set for rhythm
 - parse RESTful query for w=work,q=root,f=feature-type (pitch || rhythm || ??)
 - create setting constraints to maintain legibility (depth, children, count)
   -  depends on comparison set configuration
 - alignment styling: invisible nodes if count < min count setting
-- no comparison set for rhythm
+
 
 
 Tasks in "JRP Project Tasks, 11-Sep 2015"
