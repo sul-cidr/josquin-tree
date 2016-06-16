@@ -565,7 +565,7 @@ $(document).ready(function() {
     searchParams.w = 'all';
     searchParams.v = 'all';
     searchParams.filter='c';
-    location.href=location.origin+'/?'+querystring.stringify(searchParams);
+    location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
     // loadData(this.id.substr(-1), 'c')
 
   })
@@ -576,7 +576,7 @@ $(document).ready(function() {
     searchParams.w = 'all';
     searchParams.v = 'all';
     searchParams.filter='g';
-    location.href=location.origin+'/?'+querystring.stringify(searchParams);
+    location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
     // loadData(this.id.substr(-1), 'g')
   })
   $(".select-work").change(function(){
@@ -584,7 +584,7 @@ $(document).ready(function() {
     console.log('changed work to', this.value)
     searchParams.w = this.value;
     searchParams.filter='w';
-    location.href=location.origin+'/?'+querystring.stringify(searchParams)
+    location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams)
     // loadData(this.id.substr(-1), 'w')
   })
   $(".select-voice").change(function(){
@@ -592,7 +592,7 @@ $(document).ready(function() {
     console.log('changed voice to', this.value)
     searchParams.v = this.value;
     searchParams.filter='v';
-    location.href=location.origin+'/?'+querystring.stringify(searchParams)
+    location.href=location.origin+'/jrp?'+querystring.stringify(searchParams)
 
     // loadData(this.id.substr(-1), 'v')
   })
@@ -630,7 +630,7 @@ $(document).ready(function() {
     console.log('feature_type',feature)
     if (feature == 'pitch') {
       searchParams.a = 'pitch'
-      location.href=location.origin+'/?'+querystring.stringify(searchParams);
+      location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
       // params.a = 'pitch'
       $('input[name="root"]').val('C')
       $(".toggle-add").removeClass("hidden")
@@ -638,7 +638,7 @@ $(document).ready(function() {
       searchParams.a = 'rhythm'
       // searchParams.root = 'w_b'
       // params.a = 'rhythm'
-      location.href=location.origin+'/?'+querystring.stringify(searchParams);
+      location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
       // $(".toggle-add").addClass("hidden")
     }
     // location.href=location.origin+'/?'+querystring.stringify(searchParams);
