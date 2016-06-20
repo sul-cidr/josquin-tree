@@ -30,18 +30,13 @@ if(isEmpty(searchParams)){
   searchParams.c = params.c //need at least one composer
   location.href = location.href + '?'+querystring.stringify(searchParams)
 }
-// if(searchParams.a == 'rhythm'){
-//   $(".toggle-add").addClass("hidden");
-//   searchParams.root = 'w_b';
-// } else {
-//   delete searchParams.root;
-// }
 
-// put values from url into params
+// put values from url into params{} (we track both)
 _.each(searchParams, function(val,key){
   params[key] = val;
 })
-// console.log('params now', params)
+
+// app-wide vars
 var root = '',
     apitreeA = '', apitreeB = '',
     apinotesA = new Array, apinotesB = new Array,
@@ -55,57 +50,55 @@ var root = '',
     aType
 
 /**
-  * svg orientation
+  * svg dimensions, position
   */
 var margin = {top: 5, right: 5, bottom: 5, left: 5}
   , width = parseInt(d3.select('#svg_A').style('width'), 10) - margin.left - margin.right
   , percent = d3.format('%')
   , navWidth = parseInt(d3.select('#nav').style('width'), 10)
-  // , width = width - margin.left - margin.right;
 
-// var h = 300;
-var height = window.innerHeight; // active window - (dropdowns + footer)
+// height starts with current window
+var height = window.innerHeight;
 
+/**
+  * dimensions of tree depend on whether display = 1up or 2up
+  */
 function getDimsA(){
   if(params.display != '2up') {
     var aHeight = params.a == 'pitch' ? [width- (navWidth), height - 230] :
       [height - 180,width - (navWidth*2)];
   } else {
-    var aHeight = [width-(navWidth), height - (height/2) - 230]
+    var aHeight = [width-(navWidth), height - (height/2) - 230];
   }
-  console.log('getDims() result:',aHeight)
+  // console.log('getDims() result:',aHeight)
   return aHeight;
 }
-// dimensions of tree
-// let clusterA = d3.layout.cluster()
-//   .size(params.a == 'pitch' ? [width- (navWidth), height - 230] :
-//     [height - 180,width - (navWidth*2)]);
-
 let clusterA = d3.layout.cluster()
   .size(getDimsA())
-
 let clusterB = d3.layout.cluster()
   .size([width-(navWidth), height - (height/2) - 230])
+
 /**
   * selection = 'A' or 'B';
-  * filter one of [c,g,w,v] composer, genre, work, voice
+  *
   */
 
 function loadData(selection) {
   // console.log('loadData() selection, filter: '+selection,params.filter)
 
-  // ensure selections correspond to params in effect
+  // ensure active select options correspond to params set by URL
   $('select[id="composer_'+selection+'"] option[value="'+params.c+'"]').prop('selected',true)
   $('select[id="genre_'+selection+'"] option[value="'+params.g+'"]').prop('selected',true)
   $('select[id="work_'+selection+'"] option[value="'+params.w+'"]').prop('selected',true)
   $('select[id="voice_'+selection+'"] option[value="'+params.v+'"]').prop('selected',true)
   $('#r_'+params.a).prop('checked',true)
 
-  // url sent a work (not all), set composer
+  // url sent a work (not all), get & set composer
   if(searchParams.w && searchParams.w != 'all') {
       params.c = searchParams.w.substring(0,3)
     filter = 'w';
   }
+  // set value for var filter TODO: necessary?
   if(searchParams.v && searchParams.v != 'all'){
     filter = 'v';
     console.log('searchParams != all',searchParams.v)
