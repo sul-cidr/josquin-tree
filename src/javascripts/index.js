@@ -50,7 +50,8 @@ var root = '',
     counterClass = '', reverseTree = '',
     raw = '', svgX = '', svgY = '',
     newRoot=[],
-    layout = '', filter = 'c'
+    layout = '', filter = 'c',
+    aType
 
 /**
   * svg orientation
@@ -64,11 +65,10 @@ var margin = {top: 5, right: 5, bottom: 5, left: 5}
 // var h = 300;
 var height = window.innerHeight; // active window - (dropdowns + footer)
 
+// dimensions of tree
 let cluster = d3.layout.cluster()
-  // .size([height, width]);
-  .size(params.a == 'pitch' ? [width- (navWidth), height - 230] : [height - 180,width - (navWidth*2)]);
-  // .size([h, w-220]);
-
+  .size(params.a == 'pitch' ? [width- (navWidth), height - 230] :
+    [height - 180,width - (navWidth*2)]);
 /**
   * selection = 'A' or 'B';
   * filter one of [c,g,w,v] composer, genre, work, voice
@@ -89,8 +89,9 @@ function loadData(selection) {
       params.c = searchParams.w.substring(0,3)
     filter = 'w';
   }
-  if(searchParams.v != 'all'){
+  if(searchParams.v && searchParams.v != 'all'){
     filter = 'v';
+    console.log('searchParams != all',searchParams.v)
   }
   // always get all works for composer
   let url = 'http://josquin.stanford.edu/cgi-bin/jrp?a='+params.a+'tree&f=' + params.c + '&genre=';
@@ -101,8 +102,10 @@ function loadData(selection) {
     console.log('active params:',params)
     // hold all works for composer
     workArray = getWorks(raw,selection).sort(sortByTitle);
+    // console.log('filter',filter)
     // composer changed, reset genre, work, voice params
     if(filter == 'c' || filter == false) {
+      // console.log('filter =',filter)
       params.w = 'all';
       params.v = 'all';
 
@@ -178,20 +181,20 @@ function loadData(selection) {
     // voice
     if(params.v != 'all') {
       console.log('params.v != all')
-      console.log(raw)
+      // console.log(raw)
       sequence = buildSeq(raw,params.a,params.v)
       $('select[id="voice_'+selection+'"] option[value="'+params.v+'"]').prop('selected',true)
       // $("select[id='voice_"+selection+"'] option[value='"+params.v+"']").prop('selected',true)
       selection == 'A' ? apinotesA = sequence : apinotesB = sequence;
-      voiceArray = getVoices(workArray,selection);
+      voiceArray = getVoices(filteredWorkArray,selection);
 
       // clear, then re-populate works dropdown
       $("#work_"+selection).find('option').remove()
       $("#work_"+selection).append('<option value="all">All</option>')
 
-      for(let i in workArray){
+      for(let i in filteredWorkArray){
         $("#work_"+selection).append(
-          "<option value="+workArray[i].jrpid+">"+workArray[i].title+"</option>"
+          "<option value="+filteredWorkArray[i].jrpid+">"+filteredWorkArray[i].title+"</option>"
         )
       }
 
@@ -217,44 +220,37 @@ function loadData(selection) {
       $('input[name="root"]').val(sequence[0]);
     }
 
-    // if any depth 1 elements have no children, set min-count = 1
-    // if(_.filter(,function(elem){return elem.depth==1;}).every(elem => (elem.children))){
-    //   $('input[name="min-count"]').val(1)
-    // }
     // render sequence
     drawTree(selection, sequence, rooty);
-    // drawTree(selection, sequence);
     window.seq = sequence;
   })
 }
 
-function buildSeq(raw, dim, voice = false) {
-  console.log('buildSeq()',dim,voice)
+function buildSeq(raw, featureType, voice = false) {
+  // console.log('buildSeq()',featureType,voice)
   var seq = new(Array);
+  window.r=raw
   if (!voice) {
     for(let r of raw) {
-      for(let f of dim=='rhythm'?r.features.rhythm:r.features.pitch) {
-      // for(let f of r.features.pitch) {
+      for(let f of featureType=='rhythm'?r.features.rhythm:r.features.pitch) {
         for(let p of f) {
+          console.log(p)
           seq.push(p);
         }
         seq.push('X');
       }
     }
   } else {
-    window.r=raw
     for(let r of raw) {
       // console.log(r.voices)
       if (r.voices.indexOf(voice) > -1) {
-        for(let f of dim=='rhythm'?r.features.rhythm[r.voices.indexOf(voice)]:
+        for(let f of featureType=='rhythm'?r.features.rhythm[r.voices.indexOf(voice)]:
             r.features.pitch[r.voices.indexOf(voice)]) {
-          for(let p of f) {
-            seq.push(p);
-          }
+              console.log(f)
+              seq.push(f)
         }
       }
     }
-    console.log('notes for',voice, seq)
   }
   return seq
 }
@@ -262,10 +258,10 @@ function buildSeq(raw, dim, voice = false) {
 function drawTree(selection, seq, start=null) {
   let featureType = params.a
   // let featureType = $('input[name="feature"]:checked').val()
-  console.log('drawTree() start', start)
+  console.log('drawTree('+selection+',seq,'+start+')')
   if(selection == 'B'){
-    // resize & redraw A; draw B
-    console.log('resize & redraw A; draw B')
+    // draw B; resize & redraw A;
+    console.log('from drawTree(), resize & redraw A; draw B')
   }
   // remove existing tree, if exists
   if(svgSet != '' & selection == 'A') {
@@ -289,19 +285,22 @@ function drawTree(selection, seq, start=null) {
     .append('g')
 
   if(reverseTree) {
-    featureType == 'pitch' ? svgY = 30 : svgY = 0;
+    featureType == 'pitch' ? svgY = -200 : svgY = 0;
+    // featureType == 'pitch' ? svgX = -200 : svgX = 0;
   } else {
     featureType == 'pitch' ? svgY = height+20 : svgY = -20;
+    // featureType == 'pitch' ? svgX = height+20 : svgX = -20;
   }
 
-  // if(featureType == 'pitch') {
+  if(featureType == 'pitch') {
     svgA.attr('transform', 'translate(0,'+svgY+')');
     svgB.attr('transform', 'translate(0,'+svgY+')');
-  // }
-  // else {
+  }
+  else {
+    // svgA.attr('transform', 'translate(-500,0)');
     // svgA.attr('transform', 'translate('+svgX+',0)');
     // svgB.attr('transform', 'translate('+svgX+',0)');
-  // }
+  }
 
   if(selection == "A"){
     svgSet = svgA
@@ -329,8 +328,11 @@ function drawTree(selection, seq, start=null) {
     .projection(function(d) {
       if(featureType == 'pitch'){
         return [d.x, height-d.y ];
-      } else if(featureType == 'rhthym'){
-        return [200-d.y, d.x];
+      }
+      else {
+        console.log('trying to render diagonalR')
+        return [(width-350)-d.y, d.x];
+        // return [200-d.y, d.x];
       }
     });
 
@@ -400,7 +402,7 @@ function drawTree(selection, seq, start=null) {
         return 'link'
       }
     })
-    .attr('d', reverseTree ? diagonalR : diagonal)
+    .attr('d', !reverseTree ? diagonal : diagonalR)
     .attr('stroke-width', 4)
 
   let node = svgSet.selectAll('.node')
@@ -423,8 +425,8 @@ function drawTree(selection, seq, start=null) {
           `translate(${d.x}, ${d.y-height})`;
       } else if(featureType == 'rhythm'){
         return reverseTree ?
-          `translate(${200-d.y}, ${d.x})` :
-          // `translate(${650-d.y}, ${d.x})` :
+          // `translate(${200-d.y}, ${d.x})` :
+          `translate(${(width-350)-d.y}, ${d.x})` :
           `translate(${d.y}, ${d.x})`;
       }
     })
@@ -491,8 +493,13 @@ function drawTree(selection, seq, start=null) {
       .attr("width", 110)
       .attr("height", 13)
       .attr('x', function(d) {
-        return d.depth == 0 ? -20 : d.depth == 1 ?
-          -(scaleNode(d.count,[minCount,maxCount])+24) : 15;
+        if(!reverseTree){
+          return d.depth == 0 ? -20 : d.depth == 1 ?
+            -(scaleNode(d.count,[minCount,maxCount])+24) : 15;
+        } else {
+          return d.depth == 0 ? -20 : d.depth == 1 ?
+            -(scaleNode(d.count,[minCount,maxCount])+24) : -120;
+        }
       })
       .attr('y', function(d) {
         return d.depth == 0 ? -20 : d.depth == 1 ?
@@ -503,11 +510,19 @@ function drawTree(selection, seq, start=null) {
   // counts
   node.append('text')
     .attr('dx', function(d) {
-      return d.depth == 0 ? 10 : d.depth == 1 ? +
-        (scaleNode(d.count,[minCount,maxCount]) + 4 ) : 0;
+      if(!reverseTree){
+        return d.depth == 0 ? 10 : d.depth == 1 ? +
+          (scaleNode(d.count,[minCount,maxCount]) + 4 ) : 0;
+      } else {
+        return d.depth == 0 ? 10 : (scaleNode(d.count,[minCount,maxCount]) + 14 );
+      }
     })
     .attr('dy', function(d) {
-      return d.depth > 1 ? scaleNode(d.count,[minCount,maxCount]) +14 : ".35em";
+      if(!reverseTree){
+        return d.depth > 1 ? scaleNode(d.count,[minCount,maxCount]) +14 : ".35em";
+      } else {
+        return ".35em";
+      }
     })
     .style("font-size", function(d) {
       return d.depth == 0 ? 30 : scaleText(d.count,[minCount,maxCount])
@@ -550,14 +565,14 @@ function recurseParents(node) {
   return newRoot;
 }
 
-function redraw(dim = null) {
+function redraw(featureType = null) {
   console.log('redrew')
   let rooty = validateRoot($('input[name="root"]').val())
-  // if(dim == 'pitch'){
+  // if(featureType == 'pitch'){
     drawTree("A",apinotesA, rooty);
     // drawTree("B",apinotesB, rooty);
   // } else {
-  //   drawTreeR("A",dim)
+  //   drawTreeR("A",featureType)
   // }
 }
 
@@ -614,33 +629,30 @@ $(document).ready(function() {
     // loadData(this.id.substr(-1), 'v')
   })
   $(".toggle-add").on("click",function(){
-    console.log('clicked to toggle add')
+    // console.log('clicked to toggle "comparison set"')
     if($("#sel_B").hasClass('hidden')) {
       $(".toggle-add").text("Remove comparison set")
       $("#sel_B").removeClass("hidden")
-      console.log('drawTree(\'B\',seq,\'C\')')
-      drawTree('B',seq,'C')
+      searchParams.display = '2up'
+      // location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams)
+      drawTree('B', seq, params.root)
     } else {
       $(".toggle-add").text("Add comparison set")
       $("#sel_B").addClass("hidden")
     }
   })
 
-  var dim = $('input[name="feature"]:checked').val()
-  // var rooty = $('input[name="root"]').val()
-
   $('#b_render').click(function(){
-    redraw(dim)
+    redraw(aType)
   })
-
   $("#rcheck").change(function (){
     if(this.checked) {
       reverseTree = true;
     } else { reverseTree = false;}
-    redraw(dim)
+    redraw(aType)
   })
   $("#radio_count").change(function(){
-    redraw(dim)
+    redraw(aType)
   })
   $("#feature_type").change(function(){
     let feature = $('input[name="r_feature"]:checked').val();
@@ -757,15 +769,3 @@ function sortBy(a,b) {
   let bWhat = b.toLowerCase();
   return ((aWhat < bWhat) ? -1 : ((aWhat > bWhat) ? 1 : 0));
 }
-
-// c = $('select[id="composer_A"]').val(),
-// g = $('select[id="genre_A"]').val(),
-// w = $('select[id="work_A"]').val(),
-// v = $('select[id="voice_A"]').val(),
-// a = $('input[name="feature"]:checked').val() searchParams['a'].substr(0, searchParams['a'].length-4): ,
-// root = $('input[name="root"]').val(),
-// depth = $('input[name="depth"]').val(),
-// maxchil = $('input[name="max-children"]').val(),
-// mincount = $('input[name="min-count"]').val(),
-// reverse = $('input[name="reverse"]').prop('checked'),
-// disp = $('input[name="quant_format"]').val()
