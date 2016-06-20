@@ -45,7 +45,8 @@ _.each(searchParams, function(val,key){
 var root = '',
     apitreeA = '', apitreeB = '',
     apinotesA = new Array, apinotesB = new Array,
-    sequence = '', workArray = [], voiceArray = [], filteredWorkArray = [],
+    sequence = '', workArray = [], voiceArray = [],
+    filteredWorkArrayW = [], filteredWorkArrayG = [],
     notesSet = '', svgSet = '',
     counterClass = '', reverseTree = '',
     raw = '', svgX = '', svgY = '',
@@ -146,16 +147,16 @@ function loadData(selection) {
         return d.genre == params.g;
       });
       console.log('filtered genre ', params.g)
-      filteredWorkArray = getWorks(raw,selection);
-      voiceArray = getVoices(filteredWorkArray,selection);
+      filteredWorkArrayG = getWorks(raw,selection);
+      voiceArray = getVoices(filteredWorkArrayG,selection);
 
 
       $("#work_"+selection).find('option').remove()
       $("#work_"+selection).append('<option value="all">All</option>')
 
-      for(let i in filteredWorkArray){
+      for(let i in filteredWorkArrayG){
         $("#work_"+selection).append(
-          "<option value="+filteredWorkArray[i].jrpid+">"+filteredWorkArray[i].title+"</option>"
+          "<option value="+filteredWorkArrayG[i].jrpid+">"+filteredWorkArrayG[i].title+"</option>"
         )
       }
       $('select[id="work_'+selection+'"] option[value="'+params.w+'"]').prop('selected',true);
@@ -175,9 +176,9 @@ function loadData(selection) {
 
       // always set min-count = 1 for single work
       $('input[name="min-count"]').val(1)
-      filteredWorkArray = getWorks(raw,selection);
+      filteredWorkArrayW = getWorks(raw,selection);
       // workArray = getWorks(raw,selection);
-      voiceArray = getVoices(filteredWorkArray,selection);
+      voiceArray = getVoices(filteredWorkArrayW,selection);
       // voiceArray = getVoices(workArray,selection);
       // console.log('workArray, voiceArray',workArray,voiceArray)
 
@@ -202,16 +203,23 @@ function loadData(selection) {
       $('select[id="voice_'+selection+'"] option[value="'+params.v+'"]').prop('selected',true)
       // $("select[id='voice_"+selection+"'] option[value='"+params.v+"']").prop('selected',true)
       selection == 'A' ? apinotesA = sequence : apinotesB = sequence;
-      voiceArray = getVoices(filteredWorkArray,selection);
+      // if genre is selected, use filtered works list
+
+      var activeArray = params.g != 'all' ? filteredWorkArrayG : workArray;
+      voiceArray = getVoices(activeArray,selection);
+      // voiceArray = getVoices(filteredWorkArray,selection);
 
       // clear, then re-populate works dropdown
       $("#work_"+selection).find('option').remove()
       $("#work_"+selection).append('<option value="all">All</option>')
 
-      for(let i in filteredWorkArray){
+      for(let i in activeArray){
         $("#work_"+selection).append(
-          "<option value="+filteredWorkArray[i].jrpid+">"+filteredWorkArray[i].title+"</option>"
+          "<option value="+activeArray[i].jrpid+">"+activeArray[i].title+"</option>"
         )
+      }
+      if(params.w != 'all'){
+        $('select[id="work_'+selection+'"] option[value="'+params.w+'"]').prop('selected',true);
       }
 
       $('select[id="voice_'+selection+'"] option[value="'+params.v+'"]').prop('selected',true);
@@ -640,7 +648,6 @@ $(document).ready(function() {
     searchParams.filter='v';
     console.log('voice changed to ' +this.value+', searchParams now',searchParams)
     location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams)
-
     // loadData(this.id.substr(-1), 'v')
   })
   $(".toggle-add").on("click",function(){
@@ -654,6 +661,9 @@ $(document).ready(function() {
     } else {
       $(".toggle-add").text("Add comparison set")
       $("#sel_B").addClass("hidden")
+      d3.select('#svgB').remove()
+      searchParams.display = '1up'
+      location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams)
     }
   })
 
