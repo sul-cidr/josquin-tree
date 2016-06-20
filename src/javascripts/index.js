@@ -65,10 +65,26 @@ var margin = {top: 5, right: 5, bottom: 5, left: 5}
 // var h = 300;
 var height = window.innerHeight; // active window - (dropdowns + footer)
 
+function getDimsA(){
+  if(params.display != '2up') {
+    var aHeight = params.a == 'pitch' ? [width- (navWidth), height - 230] :
+      [height - 180,width - (navWidth*2)];
+  } else {
+    var aHeight = [width-(navWidth), height - (height/2) - 230]
+  }
+  console.log('getDims() result:',aHeight)
+  return aHeight;
+}
 // dimensions of tree
-let cluster = d3.layout.cluster()
-  .size(params.a == 'pitch' ? [width- (navWidth), height - 230] :
-    [height - 180,width - (navWidth*2)]);
+// let clusterA = d3.layout.cluster()
+//   .size(params.a == 'pitch' ? [width- (navWidth), height - 230] :
+//     [height - 180,width - (navWidth*2)]);
+
+let clusterA = d3.layout.cluster()
+  .size(getDimsA())
+
+let clusterB = d3.layout.cluster()
+  .size([width-(navWidth), height - (height/2) - 230])
 /**
   * selection = 'A' or 'B';
   * filter one of [c,g,w,v] composer, genre, work, voice
@@ -234,7 +250,7 @@ function buildSeq(raw, featureType, voice = false) {
     for(let r of raw) {
       for(let f of featureType=='rhythm'?r.features.rhythm:r.features.pitch) {
         for(let p of f) {
-          console.log(p)
+          // console.log(p)
           seq.push(p);
         }
         seq.push('X');
@@ -246,7 +262,7 @@ function buildSeq(raw, featureType, voice = false) {
       if (r.voices.indexOf(voice) > -1) {
         for(let f of featureType=='rhythm'?r.features.rhythm[r.voices.indexOf(voice)]:
             r.features.pitch[r.voices.indexOf(voice)]) {
-              console.log(f)
+              // console.log(f)
               seq.push(f)
         }
       }
@@ -261,11 +277,13 @@ function drawTree(selection, seq, start=null) {
   console.log('drawTree('+selection+',seq,'+start+')')
   if(selection == 'B'){
     // draw B; resize & redraw A;
-    console.log('from drawTree(), resize & redraw A; draw B')
+    console.log('from drawTree(), redraw A & draw B')
   }
   // remove existing tree, if exists
-  if(svgSet != '' & selection == 'A') {
-    d3.select('#svgA').remove()
+  // if(svgSet != '' & selection == 'A') {
+  if(svgSet != '' ) {
+    // d3.select('#svgA').remove()
+    d3.select('#svg'+selection).remove()
   }
   // create svg and g elements
   var svgA = d3.select('#svg_A')
@@ -359,10 +377,6 @@ function drawTree(selection, seq, start=null) {
     if(featureType == 'pitch') {
       root = $('input[name="root"]').val();
     }
-    // else {
-    //   root = 'w_b';
-    //   $('input[name="root"]').val(root);
-    // }
   } else {
     root = validateRoot(start);
     // console.log('start(root)', root);
@@ -375,8 +389,8 @@ function drawTree(selection, seq, start=null) {
 
   // let data = tree.query(root, depth, maxChildren, 1);
   let data = tree.query(root, depth, maxChildren, minCountDisplay);
-  let nodes = cluster.nodes(data);
-  let links = cluster.links(nodes);
+  let nodes = selection=="A"?clusterA.nodes(data):clusterB.nodes(data);
+  let links = selection=="A"?clusterA.links(nodes):clusterB.links(nodes);
   window.data=data
   window.l = links
   window.n = nodes
@@ -414,8 +428,8 @@ function drawTree(selection, seq, start=null) {
       // experiment
       if(d.count < minCountDisplay && d.depth > 0) {
         // console.log('hiding',d)
-        return 'hidden-node'
-      } else { return 'node'}
+        return 'hidden-node'+selection
+      } else { return 'node'+selection}
     })
     // .attr('class', 'node')
     .attr('transform', function(d) {
@@ -431,6 +445,7 @@ function drawTree(selection, seq, start=null) {
       }
     })
     .on('click', function(d) {
+      console.clear();
       newRoot = [];
       window.n = d;
       if (d3.event.shiftKey) {
@@ -443,7 +458,7 @@ function drawTree(selection, seq, start=null) {
       } else if (d3.event.altKey) {
         console.log('altKey');
       } else {
-        drawTree(selection, seq, d.name);
+        drawTree(this.className.baseVal.substr(-1), seq, d.name);
       }
     });
 
@@ -634,8 +649,8 @@ $(document).ready(function() {
       $(".toggle-add").text("Remove comparison set")
       $("#sel_B").removeClass("hidden")
       searchParams.display = '2up'
-      // location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams)
-      drawTree('B', seq, params.root)
+      location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams)
+      // drawTree('B', seq, params.root)
     } else {
       $(".toggle-add").text("Add comparison set")
       $("#sel_B").addClass("hidden")
@@ -685,9 +700,17 @@ $(document).ready(function() {
   * selection, filter=false
   */
 
-loadData('A', false);
+
 if(params.display=='2up'){
+  console.log('2up, render A & B')
+  $(".toggle-add").text("Remove comparison set")
+  $("#sel_A").css("height","50%")
+  $("#sel_B").removeClass("hidden")
+  $("#svg_B").removeClass("hidden")
+  loadData('A', false);
   loadData('B', false);
+} else {
+  loadData('A', false);
 }
 
 function getWorks(raw, selection){

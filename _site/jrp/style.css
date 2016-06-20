@@ -6754,6 +6754,7 @@ h3 {
   padding: 10px 0 20px 20px;
 }
 #sel_B {
+  height: 50%
   background: azure;
 }
 #sel_B h3 {
@@ -6784,10 +6785,12 @@ svg:not(:root) {
 .tree .hidden-link {
   display: none;
 }
-.tree .node {
+.tree .nodeA,
+.tree .nodeB {
   cursor: pointer;
 }
-.tree .node text {
+.tree .nodeA text,
+.tree .nodeB text {
   font-family: serif;
   text-anchor: end;
   font-size: 12px;
@@ -6796,7 +6799,8 @@ svg:not(:root) {
   -moz-user-select: none;
   -webkit-user-select: none;
 }
-.tree .node text.leaf {
+.tree .nodeA text.leaf,
+.tree .nodeB text.leaf {
   text-anchor: start;
 }
 #nav {
