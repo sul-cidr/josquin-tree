@@ -43,7 +43,7 @@ var root = '',
     sequence = '', workArray = [], voiceArray = [],
     filteredWorkArrayW = [], filteredWorkArrayG = [],
     notesSet = '', svgSet = '',
-    counterClass = '', reverseTree = '',
+    counterClass = '', reverseTree = params.reverse,
     raw = '', svgX = '', svgY = '',
     newRoot=[],
     layout = '', filter = 'c',
@@ -92,6 +92,7 @@ function loadData(selection) {
   $('select[id="work_'+selection+'"] option[value="'+params.w+'"]').prop('selected',true)
   $('select[id="voice_'+selection+'"] option[value="'+params.v+'"]').prop('selected',true)
   $('#r_'+params.a).prop('checked',true)
+  $('#rcheck').prop('checked',reverseTree?true:false)
 
   // url sent a work (not all), get & set composer
   if(searchParams.w && searchParams.w != 'all') {
@@ -112,7 +113,9 @@ function loadData(selection) {
     console.log('active params:',params)
     // hold all works for composer
     workArray = getWorks(raw,selection).sort(sortByTitle);
+    window.works = workArray
     // console.log('filter',filter)
+
     // composer changed, reset genre, work, voice params
     if(filter == 'c' || filter == false) {
       // console.log('filter =',filter)
@@ -131,6 +134,21 @@ function loadData(selection) {
         )
       }
       $('select[id="work_'+selection+'"] option[value="'+params.w+'"]').prop('selected',true);
+
+      /**
+        * disable genres not relevant for composer
+        */
+      var genres = ['Mass','Motet','Song'];
+      window.activeGenres = [];
+      _.each(workArray, function(w){
+        if(activeGenres.indexOf(w.genre) < 0) {
+          activeGenres.push(w.genre)
+        }
+      })
+      _.each(activeGenres, function(d){
+        $('#genre_'+selection+' option[value="'+d+'"]').attr("disabled", false);
+      })
+      console.log('composer/genres:',activeGenres);
       // workArray = getWorks(raw,selection);
       voiceArray = getVoices(workArray,selection);
     }
@@ -139,7 +157,7 @@ function loadData(selection) {
       raw = raw.filter(function(d){
         return d.genre == params.g;
       });
-      console.log('filtered genre ', params.g)
+      console.log('filtering genre ', params.g)
       filteredWorkArrayG = getWorks(raw,selection);
       voiceArray = getVoices(filteredWorkArrayG,selection);
 
@@ -360,11 +378,13 @@ function drawTree(selection, seq, start=null) {
   seqArr.push(seq)
 
   // build suffix-tree
-  if( reverseTree ) {
+  console.log('reverseTree',reverseTree)
+  if(reverseTree) {
     var tree = new SuffixTree(seqArr,true);
-    } else {
+  } else {
+    // console.log('reverseTree false')
     var tree = new SuffixTree(seqArr,false);
-    }
+  }
   window.tree = tree;
   // display counters
   let counter = `${seq.length.toLocaleString()}  `;
@@ -581,22 +601,34 @@ function recurseParents(node) {
   return newRoot;
 }
 
-function redraw(featureType = null) {
-  console.log('redrew')
-  let rooty = validateRoot($('input[name="root"]').val())
-  // if(featureType == 'pitch'){
-    drawTree("A",apinotesA, rooty);
-    // drawTree("B",apinotesB, rooty);
-  // } else {
-  //   drawTreeR("A",featureType)
-  // }
+function redraw(featureType = null, reset = false) {
+  console.log(reset?'reset':'redrew')
+  if(reset){
+    // input [r_feature->pitch=checked, root=C, depth=2, max-children=6, min-count=3, reverse=false]
+    // radio-count quant_format = raw
+    $('#r_pitch').prop('checked',true);
+    $('input[name="root"]').prop('value','C');
+    var rooty = 'C';
+    $('input[name="depth"]').prop('value',2);
+    $('input[name="max-children"]').prop('value',6);
+    $('input[name="min-count"]').prop('value',3);
+    $('#rcheck').prop('checked',false); // Reverse checkbox
+    params.reverse = false;
+    $('input:radio[value=raw]').prop('checked',true);
+  } else {
+    var rooty = validateRoot($('input[name="root"]').val());
+  }
+  drawTree("A",apinotesA, rooty);
+  if(!$("#sel_B").attr('class')=='hidden'){
+    drawTree("B",apinotesB, rooty);
+  }
 }
 
 function resize() {
   width = parseInt(d3.select('#svg_A').style('width'), 10);
   width = width - margin.left - margin.right;
-  console.log('new width', width)
-  location.reload()
+  console.log('new width', width);
+  location.reload();
 
 }
 
@@ -660,14 +692,22 @@ $(document).ready(function() {
     }
   })
 
+  $('#b_reset').click(function(){
+    redraw(aType,true)
+  })
   $('#b_render').click(function(){
-    redraw(aType)
+    redraw(aType,false)
   })
   $("#rcheck").change(function (){
+    console.log('this.checked',this.checked)
     if(this.checked) {
-      reverseTree = true;
-    } else { reverseTree = false;}
-    redraw(aType)
+      searchParams.reverse = 'true'
+    } else {
+      searchParams.reverse = 'false'
+      console.log('unchecked')
+    }
+    location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams)
+    // redraw(aType)
   })
   $("#radio_count").change(function(){
     redraw(aType)
