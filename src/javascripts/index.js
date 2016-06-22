@@ -15,9 +15,15 @@ window.u = url;
 // defaults
 var params = {
   "c":"Obr","g":"all","w":"all","v":"all",
-  // "c2":"Pip","g2":"all","w2":"all","v2":"all",
   "a":"pitch","root":"C","depth":2,"maxchil":6,"mincount":3,"reverse": false,
   "quant":"raw","display":"1up","filter":false
+}
+function resetParams(){
+  var params = {
+    "c":"Obr","g":"all","w":"all","v":"all",
+    "a":"pitch","root":"C","depth":2,"maxchil":6,"mincount":3,"reverse": false,
+    "quant":"raw","display":"1up","filter":false
+  }
 }
 window.params = params;
 
@@ -378,7 +384,7 @@ function drawTree(selection, seq, start=null) {
   seqArr.push(seq)
 
   // build suffix-tree
-  console.log('reverseTree',reverseTree)
+  // console.log('reverseTree',reverseTree)
   if(reverseTree) {
     var tree = new SuffixTree(seqArr,true);
   } else {
@@ -471,15 +477,17 @@ function drawTree(selection, seq, start=null) {
       window.n = d;
       if (d3.event.shiftKey) {
         if(featureType == 'pitch') {
-          let rooty = recurseParents(d).reverse();
+          let rooty = params.reverse==""?recurseParents(d).reverse():recurseParents(d);
           console.log('rooty', rooty.join(','))
           $('input[name="min-count"]').val(1)
+          $('input[name="root"]').prop('value',rooty.join(','));
           drawTree(selection, seq, rooty.join(','));
         }
       } else if (d3.event.altKey) {
         console.log('altKey');
       } else {
         drawTree(this.className.baseVal.substr(-1), seq, d.name);
+        $('input[name="root"]').prop('value',d.name);
       }
     });
 
@@ -604,17 +612,22 @@ function recurseParents(node) {
 function redraw(featureType = null, reset = false) {
   console.log(reset?'reset':'redrew')
   if(reset){
+    resetParams();
     // input [r_feature->pitch=checked, root=C, depth=2, max-children=6, min-count=3, reverse=false]
     // radio-count quant_format = raw
     $('#r_pitch').prop('checked',true);
+    // params.a = 'pitch';
     $('input[name="root"]').prop('value','C');
+    // params.root
     var rooty = 'C';
     $('input[name="depth"]').prop('value',2);
     $('input[name="max-children"]').prop('value',6);
     $('input[name="min-count"]').prop('value',3);
     $('#rcheck').prop('checked',false); // Reverse checkbox
-    params.reverse = false;
-    $('input:radio[value=raw]').prop('checked',true);
+
+    searchParams.reverse = null;
+    location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams)
+    // $('input:radio[value=raw]').prop('checked',true);
   } else {
     var rooty = validateRoot($('input[name="root"]').val());
   }
@@ -703,9 +716,10 @@ $(document).ready(function() {
     if(this.checked) {
       searchParams.reverse = 'true'
     } else {
-      searchParams.reverse = 'false'
+      searchParams.reverse = ''
       console.log('unchecked')
     }
+    console.log(location.origin+'/jrp/?'+querystring.stringify(searchParams))
     location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams)
     // redraw(aType)
   })
