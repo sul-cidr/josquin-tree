@@ -259,6 +259,7 @@ function loadData(selection) {
     } else if(params.a == 'rhythm') {
       var rooty = sequence[0];
       $('input[name="root"]').val(sequence[0]);
+      $(".toggle-add").addClass("hidden")
     }
 
     // render sequence
@@ -297,6 +298,9 @@ function buildSeq(raw, featureType, voice = false) {
 }
 
 function drawTree(selection, seq, start=null) {
+  if('#svg'+selection){
+    $('#svg'+selection).remove();
+  }
   let featureType = params.a
   // let featureType = $('input[name="feature"]:checked').val()
   console.log('drawTree('+selection+',seq,'+start+')')
@@ -379,7 +383,6 @@ function drawTree(selection, seq, start=null) {
       }
     });
 
-
   var seqArr=[]
   seqArr.push(seq)
 
@@ -421,11 +424,7 @@ function drawTree(selection, seq, start=null) {
   window.data=data
   window.l = links
   window.n = nodes
-  // if any depth 1 elements have no children, set min-count = 1
-  if(_.filter(nodes,function(elem){return elem.depth==1;}).every(elem => (elem.children)) == false){
-    console.log('one or more level 1 nodes have no children')
-    $('input[name="min-count"]').val(1)
-  }
+
   // console.log('a link', links[7].source,links[7].target)
   // find min/max counts used to scale nodes and node labels
   var maxCount = d3.max(nodes, function(d){return d.count});
@@ -479,7 +478,7 @@ function drawTree(selection, seq, start=null) {
         if(featureType == 'pitch') {
           let rooty = params.reverse==""?recurseParents(d).reverse():recurseParents(d);
           console.log('rooty', rooty.join(','))
-          $('input[name="min-count"]').val(1)
+          // $('input[name="min-count"]').val(1)
           $('input[name="root"]').prop('value',rooty.join(','));
           drawTree(selection, seq, rooty.join(','));
         }
@@ -499,6 +498,14 @@ function drawTree(selection, seq, start=null) {
       return counterClass === '.countA' ? '#BC5330' : '#1F5FA2'
     })
     // .append('text')
+
+  // if any depth 1 elements have no children, set min-count = 1
+  if(_.filter(nodes,function(elem){return elem.depth==1;}).every(elem => (elem.children)) == false){
+    console.log('one or more level 1 nodes have no children')
+    $('input[name="min-count"]').val(1)
+    // remove existing svg
+    redraw()
+  }
 
   if(featureType == 'pitch') {
     // note letters
@@ -630,8 +637,8 @@ function redraw(featureType = null, reset = false) {
     // $('input:radio[value=raw]').prop('checked',true);
   } else {
     var rooty = validateRoot($('input[name="root"]').val());
+    drawTree("A",apinotesA, rooty);
   }
-  drawTree("A",apinotesA, rooty);
   if(!$("#sel_B").attr('class')=='hidden'){
     drawTree("B",apinotesB, rooty);
   }
@@ -740,7 +747,6 @@ $(document).ready(function() {
       // searchParams.root = 'w_b'
       // params.a = 'rhythm'
       location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
-      // $(".toggle-add").addClass("hidden")
     }
     // location.href=location.origin+'/?'+querystring.stringify(searchParams);
     loadData("A", false)
