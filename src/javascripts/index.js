@@ -302,16 +302,14 @@ function drawTree(selection, seq, start=null) {
     $('#svg'+selection).remove();
   }
   let featureType = params.a
-  // let featureType = $('input[name="feature"]:checked').val()
   console.log('drawTree('+selection+',seq,'+start+')')
   if(selection == 'B'){
     // draw B; resize & redraw A;
+    // TODO: nothing here?
     console.log('from drawTree(), redraw A & draw B')
   }
   // remove existing tree, if exists
-  // if(svgSet != '' & selection == 'A') {
   if(svgSet != '' ) {
-    // d3.select('#svgA').remove()
     d3.select('#svg'+selection).remove()
   }
   // create svg and g elements
@@ -359,8 +357,6 @@ function drawTree(selection, seq, start=null) {
     counterClass = '.countB'
   }
 
-  // console.log('drawTree() for', featureType )
-  // console.log('drawTree(), selection, start:', selection, start)
   let diagonal = d3.svg.diagonal()
     .projection(function(d) {
       if(featureType == 'pitch'){
@@ -399,17 +395,16 @@ function drawTree(selection, seq, start=null) {
   let counter = `${seq.length.toLocaleString()}  `;
   // console.log(counter);
   $(counterClass).text( featureType=='pitch'?counter+' notes':counter+' rhythms')
-  // $(counterClass).text(`${notesSet.length.toLocaleString()} notes`)
 
   eval(svgSet).text('');
 
+  // TODO: still nec?
   if(start == null) {
     if(featureType == 'pitch') {
       root = $('input[name="root"]').val();
     }
   } else {
     root = validateRoot(start);
-    // console.log('start(root)', root);
   }
 
   let depth = Number($('input[name="depth"]').val());
@@ -425,7 +420,6 @@ function drawTree(selection, seq, start=null) {
   window.l = links
   window.n = nodes
 
-  // console.log('a link', links[7].source,links[7].target)
   // find min/max counts used to scale nodes and node labels
   var maxCount = d3.max(nodes, function(d){return d.count});
   var minCount = d3.min(nodes, function(d){return d.count});
@@ -557,7 +551,7 @@ function drawTree(selection, seq, start=null) {
           -(scaleNode(d.count,[minCount,maxCount])+12) : -5;
       })
   }
-  // console.log('quantFormat', quantFormat)
+  // console.log('reverseTree', reverseTree);
   // counts
   node.append('text')
     .attr('dx', function(d) {
@@ -565,14 +559,17 @@ function drawTree(selection, seq, start=null) {
         return d.depth == 0 ? 10 : d.depth == 1 ? +
           (scaleNode(d.count,[minCount,maxCount]) + 4 ) : 0;
       } else {
-        return d.depth == 0 ? 10 : (scaleNode(d.count,[minCount,maxCount]) + 14 );
+        console.log(d.depth)
+        return d.depth < 1 ? 10 : d.depth ==1 ? scaleNode(d.count,[minCount,maxCount]) + 3: 0;
+            // scaleNode(d.count,[minCount,maxCount]);
       }
     })
     .attr('dy', function(d) {
       if(!reverseTree){
         return d.depth > 1 ? scaleNode(d.count,[minCount,maxCount]) +14 : ".35em";
       } else {
-        return ".35em";
+        return d.depth < 1 ? 10 : d.depth == 1 ? ".35em":
+            scaleNode(d.count,[minCount,maxCount]) + 14;
       }
     })
     .style("font-size", function(d) {
@@ -600,58 +597,7 @@ function drawTree(selection, seq, start=null) {
     })
 }; // drawTree()
 
-function validateRoot(entry) {
-  let val = entry.replace(/ /g,',');
-  return val;
-}
-
-function recurseParents(node) {
-  if(node) {
-    // console.log('parent name', node.name)
-    newRoot.push(node.name)
-    // console.log('newRoot', newRoot)
-    recurseParents(node.parent)
-  }
-  // console.log('newRoot', newRoot)
-  return newRoot;
-}
-
-function redraw(featureType = null, reset = false) {
-  console.log(reset?'reset':'redrew')
-  if(reset){
-    resetParams();
-    // input [r_feature->pitch=checked, root=C, depth=2, max-children=6, min-count=3, reverse=false]
-    // radio-count quant_format = raw
-    $('#r_pitch').prop('checked',true);
-    // params.a = 'pitch';
-    $('input[name="root"]').prop('value','C');
-    // params.root
-    var rooty = 'C';
-    $('input[name="depth"]').prop('value',2);
-    $('input[name="max-children"]').prop('value',6);
-    $('input[name="min-count"]').prop('value',3);
-    $('#rcheck').prop('checked',false); // Reverse checkbox
-
-    searchParams.reverse = null;
-    location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams)
-    // $('input:radio[value=raw]').prop('checked',true);
-  } else {
-    var rooty = validateRoot($('input[name="root"]').val());
-    drawTree("A",apinotesA, rooty);
-  }
-  if(!$("#sel_B").attr('class')=='hidden'){
-    drawTree("B",apinotesB, rooty);
-  }
-}
-
-function resize() {
-  width = parseInt(d3.select('#svg_A').style('width'), 10);
-  width = width - margin.left - margin.right;
-  console.log('new width', width);
-  location.reload();
-
-}
-
+// misc. event handlers
 $(document).ready(function() {
   d3.select(window).on('resize', _.debounce(function(){
     resize();
@@ -763,7 +709,6 @@ $(document).ready(function() {
   * selection, filter=false
   */
 
-
 if(params.display=='2up'){
   console.log('2up, render A & B')
   $(".toggle-add").text("Remove comparison set")
@@ -817,6 +762,63 @@ function getVoices(works, selection) {
 /**
   * misc utility functions
   */
+
+// redraw "in place" or reset (new location.href)
+function redraw(featureType = null, reset = false) {
+  console.log(reset?'reset':'redrew')
+  if(reset){
+    resetParams();
+    // input [r_feature->pitch=checked, root=C, depth=2, max-children=6, min-count=3, reverse=false]
+    // radio-count quant_format = raw
+    $('#r_pitch').prop('checked',true);
+    // params.a = 'pitch';
+    $('input[name="root"]').prop('value','C');
+    // params.root
+    var rooty = 'C';
+    $('input[name="depth"]').prop('value',2);
+    $('input[name="max-children"]').prop('value',6);
+    $('input[name="min-count"]').prop('value',3);
+    $('#rcheck').prop('checked',false); // Reverse checkbox
+
+    searchParams.reverse = null;
+    location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams)
+    // $('input:radio[value=raw]').prop('checked',true);
+  } else {
+    var rooty = validateRoot($('input[name="root"]').val());
+    drawTree("A",apinotesA, rooty);
+  }
+  if(!$("#sel_B").attr('class')=='hidden'){
+    drawTree("B",apinotesB, rooty);
+  }
+}
+
+// reload location on any resize
+function resize() {
+  width = parseInt(d3.select('#svg_A').style('width'), 10);
+  width = width - margin.left - margin.right;
+  console.log('new width', width);
+  location.reload();
+}
+
+// permit multiple letter root with space
+function validateRoot(entry) {
+  let val = entry.replace(/ /g,',');
+  return val;
+}
+
+// find notes for parent nodes
+function recurseParents(node) {
+  if(node) {
+    // console.log('parent name', node.name)
+    newRoot.push(node.name)
+    // console.log('newRoot', newRoot)
+    recurseParents(node.parent)
+  }
+  // console.log('newRoot', newRoot)
+  return newRoot;
+}
+
+// test object is empty
 function isEmpty(obj) {
     if (obj == null) return true;
 
@@ -830,6 +832,7 @@ function isEmpty(obj) {
     return true;
 }
 
+// proportional size for nodes
 function scaleNode(val,range) {
   let s = d3.scale.linear()
     .domain(range)
@@ -837,6 +840,7 @@ function scaleNode(val,range) {
   return s(val);
 }
 
+// proportional size for text
 function scaleText(val,range) {
   let s = d3.scale.linear()
     .domain(range)
@@ -844,6 +848,7 @@ function scaleText(val,range) {
   return s(val);
 }
 
+// for works dropdown
 function sortByTitle(a,b) {
   let aTitle = a.title.toLowerCase();
   let bTitle = b.title.toLowerCase();
