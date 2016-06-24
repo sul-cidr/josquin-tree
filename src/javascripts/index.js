@@ -18,6 +18,11 @@ var params = {
   "a":"pitch","root":"C","depth":2,"maxchil":6,"mincount":3,"reverse": false,
   "quant":"raw","display":"1up","filter":false
 }
+var paramsB = {
+  "c":"Obr","g":"all","w":"all","v":"all",
+  "a":"pitch","root":"C","depth":2,"maxchil":6,"mincount":3,"reverse": false,
+  "quant":"raw","display":"1up","filter":false
+}
 function resetParams(){
   var params = {
     "c":"Obr","g":"all","w":"all","v":"all",
@@ -26,6 +31,7 @@ function resetParams(){
   }
 }
 window.params = params;
+window.paramsb = paramsB;
 
 // parse url
 var url = require('url'),
@@ -40,6 +46,7 @@ if(isEmpty(searchParams)){
 // put values from url into params{} (we track both)
 _.each(searchParams, function(val,key){
   params[key] = val;
+  paramsB[key] = val;
 })
 
 // app-wide vars
@@ -306,7 +313,7 @@ function drawTree(selection, seq, start=null) {
   if(selection == 'B'){
     // draw B; resize & redraw A;
     // TODO: nothing here?
-    console.log('from drawTree(), redraw A & draw B')
+    // console.log('from drawTree(), redraw A & draw B')
   }
   // remove existing tree, if exists
   if(svgSet != '' ) {
@@ -349,7 +356,7 @@ function drawTree(selection, seq, start=null) {
 
   if(selection == "A"){
     svgSet = svgA
-    window.notesSet = apinotesA
+    notesSet = apinotesA
     counterClass = '.countA'
   } else if(selection == "B"){
     svgSet = svgB
@@ -604,18 +611,17 @@ $(document).ready(function() {
   }, 250 ));
 
   $(".select-composer").change(function(){
-    // console.clear()
-    searchParams.c = this.value;
-    searchParams.g = 'all';
-    searchParams.w = 'all';
-    searchParams.v = 'all';
-    searchParams.filter='c';
+    console.clear()
     if(this.id.substr(-1) == 'B'){
-      console.log('you want ',searchParams.c+' in selection B, eh?')
+      console.log(searchParams.c+' in selection B, eh?')
       params.c = this.value;
       loadData('B')
     } else {
       searchParams.c = this.value;
+      searchParams.g = 'all';
+      searchParams.w = 'all';
+      searchParams.v = 'all';
+      searchParams.filter='c';
       location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
     }
     // location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
@@ -623,18 +629,16 @@ $(document).ready(function() {
 
   })
   $(".select-genre").change(function(){
-    // console.clear()
-    console.log('changed genre to', this.value);
-    searchParams.g = this.value;
-    searchParams.w = 'all';
-    searchParams.v = 'all';
-    searchParams.filter='g';
+    console.clear()
     if(this.id.substr(-1) == 'B'){
-      console.log('you want ',searchParams.g+' in selection B, eh?')
       params.g = this.value;
+      console.log(params.g+' in selection B, eh?')
       loadData('B')
     } else {
       searchParams.g = this.value;
+      searchParams.w = 'all';
+      searchParams.v = 'all';
+      searchParams.filter='g';
       location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
     }
   })
@@ -744,10 +748,10 @@ if(params.display=='2up'){
   $("#sel_A").css("height","50%")
   $("#sel_B").removeClass("hidden")
   $("#svg_B").removeClass("hidden")
-  loadData('A', false);
-  loadData('B', false);
+  loadData('A');
+  loadData('B');
 } else {
-  loadData('A', false);
+  loadData('A');
 }
 
 function getWorks(raw, selection){
