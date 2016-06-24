@@ -605,13 +605,20 @@ $(document).ready(function() {
 
   $(".select-composer").change(function(){
     // console.clear()
-    console.log('changed composer to', this.value, this.id.substr(-1));
     searchParams.c = this.value;
     searchParams.g = 'all';
     searchParams.w = 'all';
     searchParams.v = 'all';
     searchParams.filter='c';
-    location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
+    if(this.id.substr(-1) == 'B'){
+      console.log('you want ',searchParams.c+' in selection B, eh?')
+      params.c = this.value;
+      loadData('B')
+    } else {
+      searchParams.c = this.value;
+      location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
+    }
+    // location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
     // loadData(this.id.substr(-1), 'c')
 
   })
@@ -622,25 +629,47 @@ $(document).ready(function() {
     searchParams.w = 'all';
     searchParams.v = 'all';
     searchParams.filter='g';
-    location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
-    // loadData(this.id.substr(-1), 'g')
+    if(this.id.substr(-1) == 'B'){
+      console.log('you want ',searchParams.g+' in selection B, eh?')
+      params.g = this.value;
+      loadData('B')
+    } else {
+      searchParams.g = this.value;
+      location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
+    }
   })
   $(".select-work").change(function(){
     // console.clear()
     console.log('changed work to', this.value)
     searchParams.w = this.value;
     searchParams.filter='w';
-    location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams)
-    // loadData(this.id.substr(-1), 'w')
+
+    if(this.id.substr(-1) == 'B'){
+      console.log('you want ',searchParams.w+' in selection B, eh?')
+      params.w = this.value;
+      loadData('B')
+    } else {
+      searchParams.w = this.value;
+      location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
+    }
   })
   $(".select-voice").change(function(){
     // console.clear()
     searchParams.v = this.value;
     searchParams.filter='v';
     console.log('voice changed to ' +this.value+', searchParams now',searchParams)
-    location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams)
-    // loadData(this.id.substr(-1), 'v')
+
+    if(this.id.substr(-1) == 'B'){
+      console.log('you want ',searchParams.v+' in selection B, eh?')
+      params.v = this.value;
+      loadData('B')
+    } else {
+      searchParams.v = this.value;
+      location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
+    }
+
   })
+
   $(".toggle-add").on("click",function(){
     // console.log('clicked to toggle "comparison set"')
     if($("#sel_B").hasClass('hidden')) {
