@@ -98,7 +98,9 @@ let clusterB = d3.layout.cluster()
 
 function loadData(selection) {
   // console.log('loadData() selection, filter: '+selection,params.filter)
-
+  if(selection=='B'){
+    params = paramsB
+  }
   // ensure active select options correspond to params set by URL
   $('select[id="composer_'+selection+'"] option[value="'+params.c+'"]').prop('selected',true)
   $('select[id="genre_'+selection+'"] option[value="'+params.g+'"]').prop('selected',true)
@@ -614,7 +616,7 @@ $(document).ready(function() {
     console.clear()
     if(this.id.substr(-1) == 'B'){
       console.log(searchParams.c+' in selection B, eh?')
-      params.c = this.value;
+      paramsB.c = this.value;
       loadData('B')
     } else {
       searchParams.c = this.value;
@@ -631,7 +633,7 @@ $(document).ready(function() {
   $(".select-genre").change(function(){
     console.clear()
     if(this.id.substr(-1) == 'B'){
-      params.g = this.value;
+      paramsB.g = this.value;
       console.log(params.g+' in selection B, eh?')
       loadData('B')
     } else {
@@ -650,7 +652,7 @@ $(document).ready(function() {
 
     if(this.id.substr(-1) == 'B'){
       console.log('you want ',searchParams.w+' in selection B, eh?')
-      params.w = this.value;
+      paramsB.w = this.value;
       loadData('B')
     } else {
       searchParams.w = this.value;
@@ -665,7 +667,7 @@ $(document).ready(function() {
 
     if(this.id.substr(-1) == 'B'){
       console.log('you want ',searchParams.v+' in selection B, eh?')
-      params.v = this.value;
+      paramsB.v = this.value;
       loadData('B')
     } else {
       searchParams.v = this.value;
