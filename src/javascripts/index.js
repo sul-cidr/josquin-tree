@@ -99,7 +99,7 @@ let clusterB = d3.layout.cluster()
 function loadData(selection) {
   // console.log('loadData() selection, filter: '+selection,params.filter)
   if(selection=='B'){
-    params = paramsB
+    params = paramsB;
   }
   // ensure active select options correspond to params set by URL
   $('select[id="composer_'+selection+'"] option[value="'+params.c+'"]').prop('selected',true)
@@ -125,7 +125,7 @@ function loadData(selection) {
   d3.json(url, function(error, raw) {
     // console.log(raw.length +' works, filter = '+filter)
     window.r=raw;
-    console.log('active params:',params)
+    console.log('active params:',selection,params)
     // hold all works for composer
     workArray = getWorks(raw,selection).sort(sortByTitle);
     window.works = workArray
@@ -615,8 +615,11 @@ $(document).ready(function() {
   $(".select-composer").change(function(){
     console.clear()
     if(this.id.substr(-1) == 'B'){
-      console.log(searchParams.c+' in selection B, eh?')
       paramsB.c = this.value;
+      paramsB.g = 'all';
+      paramsB.w = 'all';
+      paramsB.v = 'all';
+      console.log(paramsB.c+' in selection B, eh?')
       loadData('B')
     } else {
       searchParams.c = this.value;
@@ -634,6 +637,8 @@ $(document).ready(function() {
     console.clear()
     if(this.id.substr(-1) == 'B'){
       paramsB.g = this.value;
+      paramsB.w = 'all';
+      paramsB.v = 'all';
       console.log(params.g+' in selection B, eh?')
       loadData('B')
     } else {
@@ -653,6 +658,7 @@ $(document).ready(function() {
     if(this.id.substr(-1) == 'B'){
       console.log('you want ',searchParams.w+' in selection B, eh?')
       paramsB.w = this.value;
+      paramsB.v = 'all';
       loadData('B')
     } else {
       searchParams.w = this.value;
