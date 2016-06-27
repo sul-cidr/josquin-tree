@@ -355,27 +355,17 @@ function drawTree(selection, seq, start=null) {
     // featureType == 'pitch' ? svgX = -200 : svgX = 0;
   } else {
     featureType == 'pitch' ? svgY = height+20 : svgY = -20;
+    $("#svg_A").css('padding-left','12px')
     // featureType == 'pitch' ? svgX = height+20 : svgX = -20;
   }
 
-  // if(selection == 'A'){
-  //   svgSet = svgA
-  //   notesSet = apinotesA
-  //   counterClass = '.countA'
-  // } else if(selection == 'B'){
-  //   svgSet = svgB
-  //   notesSet = apinotesB
-  //   counterClass = '.countB'
-  // }
-  console.log('svgSet, svgY',svgSet,svgY)
+  // console.log('svgSet, svgY',svgSet,svgY)
   if(featureType == 'pitch') {
     svgSet.attr('transform', 'translate(0,'+svgY+')');
     // svgB.attr('transform', 'translate(0,'+svgY+')');
   }
   else {
-    // svgA.attr('transform', 'translate(-500,0)');
-    // svgA.attr('transform', 'translate('+svgX+',0)');
-    // svgB.attr('transform', 'translate('+svgX+',0)');
+    // TODO: what for?
   }
 
   let diagonal = d3.svg.diagonal()
@@ -404,11 +394,9 @@ function drawTree(selection, seq, start=null) {
   seqArr.push(seq)
 
   // build suffix-tree
-  // console.log('reverseTree',reverseTree)
   if(reverseTree) {
     var tree = new SuffixTree(seqArr,true);
   } else {
-    // console.log('reverseTree false')
     var tree = new SuffixTree(seqArr,false);
   }
   window.tree = tree;
@@ -516,7 +504,7 @@ function drawTree(selection, seq, start=null) {
     // .append('text')
 
   // if any depth 1 elements have no children, set min-count = 1
-  if(_.filter(nodes,function(elem){return elem.depth==1;}).every(elem => (elem.children)) == false){
+  if(_.filter(nodes,function(elem){return elem.depth ==1;}).every(elem => (elem.children)) == false){
     console.log('one or more level 1 nodes have no children')
     $('input[name="min-count"]').val(1)
     // remove existing svg
@@ -562,7 +550,8 @@ function drawTree(selection, seq, start=null) {
       .attr('x', function(d) {
         if(!reverseTree){
           return d.depth == 0 ? -20 : d.depth == 1 ?
-            -(scaleNode(d.count,[minCount,maxCount])+24) : 15;
+            -(scaleNode(d.count,[minCount,maxCount])+24) : (scaleNode(d.count,[minCount,maxCount])+4);
+            // -(scaleNode(d.count,[minCount,maxCount])+24) : 10;
         } else {
           return d.depth == 0 ? -20 : d.depth == 1 ?
             -(scaleNode(d.count,[minCount,maxCount])+24) : -120;
@@ -570,7 +559,8 @@ function drawTree(selection, seq, start=null) {
       })
       .attr('y', function(d) {
         return d.depth == 0 ? -20 : d.depth == 1 ?
-          -(scaleNode(d.count,[minCount,maxCount])+12) : -5;
+          -(scaleNode(d.count,[minCount,maxCount])+12) : -7; // svg is 13h
+          // -(scaleNode(d.count,[minCount,maxCount])+12) : -5;
       })
   }
   // console.log('reverseTree', reverseTree);
@@ -579,7 +569,8 @@ function drawTree(selection, seq, start=null) {
     .attr('dx', function(d) {
       if(!reverseTree){
         return d.depth == 0 ? 10 : d.depth == 1 ? +
-          (scaleNode(d.count,[minCount,maxCount]) + 4 ) : 0;
+          (scaleNode(d.count,[minCount,maxCount]) + 4 ) : - (scaleNode(d.count,[minCount,maxCount])+4 );
+          // (scaleNode(d.count,[minCount,maxCount]) + 4 ) : 0;
       } else {
         // console.log(d.depth)
         return d.depth < 1 ? 10 : d.depth ==1 ? scaleNode(d.count,[minCount,maxCount]) + 3: 0;
@@ -588,7 +579,8 @@ function drawTree(selection, seq, start=null) {
     })
     .attr('dy', function(d) {
       if(!reverseTree){
-        return d.depth > 1 ? scaleNode(d.count,[minCount,maxCount]) +14 : ".35em";
+        return ".35em";
+        // return d.depth > 1 ? scaleNode(d.count,[minCount,maxCount]) +14 : ".35em";
       } else {
         return d.depth < 1 ? 10 : d.depth == 1 ? ".35em":
             scaleNode(d.count,[minCount,maxCount]) + 14;
@@ -598,7 +590,8 @@ function drawTree(selection, seq, start=null) {
       return d.depth == 0 ? 30 : scaleText(d.count,[minCount,maxCount])
     })
     .style("text-anchor", function(d){
-      return d.depth > 1 ? "middle" : "start"
+      return d.depth == 1 ? "start" : "end"
+      // return d.depth > 1 ? "middle" : "start"
     })
     .classed('leaf-text', function(d) {
       return !d.children;
@@ -931,6 +924,7 @@ function scaleNode(val,range) {
   let s = d3.scale.linear()
     .domain(range)
     .range([3,15]);
+    // console.log('scaleNode val',s(val))
   return s(val);
 }
 
