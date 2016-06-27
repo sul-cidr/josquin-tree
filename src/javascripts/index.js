@@ -108,7 +108,7 @@ function loadData(selection) {
   // console.log('loadData() selection, filter: '+selection,params.filter)
   params = selection=='B' ? paramsB : paramsA;
 
-  // ensure active select options correspond to params set by URL
+  // ensure active select options correspond to active params
   $('select[id="composer_'+selection+'"] option[value="'+params.c+'"]').prop('selected',true)
   $('select[id="genre_'+selection+'"] option[value="'+params.g+'"]').prop('selected',true)
   $('select[id="work_'+selection+'"] option[value="'+params.w+'"]').prop('selected',true)
@@ -140,7 +140,7 @@ function loadData(selection) {
 
     // composer changed, reset genre, work, voice params
     if(filter == 'c' || filter == false) {
-      // console.log('filter =',filter)
+      console.log('filter =',filter)
       params.w = 'all';
       params.v = 'all';
 
@@ -619,6 +619,7 @@ $(document).ready(function() {
 
   $(".select-composer").change(function(){
     console.clear()
+    filter = 'c';
     if(this.id.substr(-1) == 'B'){
       paramsB.c = this.value;
       paramsB.g = 'all';
