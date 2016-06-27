@@ -718,12 +718,14 @@ $(document).ready(function() {
     // console.log('clicked to toggle "comparison set"')
     if($("#sel_B").hasClass('hidden')) {
       $(".toggle-add").text("Remove comparison set")
+      // $("input[name=r_feature][value=rhythm]").attr('disabled',true)
       $("#sel_B").removeClass("hidden")
       searchParams.display = '2up'
       location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams)
       // drawTree('B', seq, params.root)
     } else {
       $(".toggle-add").text("Add comparison set")
+      // $("input[name=r_feature][value=rhythm]").attr('disabled',true)
       $("#sel_B").addClass("hidden")
       d3.select('#svgB').remove()
       searchParams.display = '1up'
@@ -784,6 +786,7 @@ $(document).ready(function() {
 if(params.display=='2up'){
   console.log('2up, render A & B')
   $(".toggle-add").text("Remove comparison set")
+  $("input[name=r_feature][value=rhythm]").attr('disabled',true)
   $("#sel_A").css("height","50%")
   $("#sel_B").removeClass("hidden")
   $("#svg_B").removeClass("hidden")
