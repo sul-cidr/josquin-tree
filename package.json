@@ -6,7 +6,7 @@
     "type": "git",
     "url": "git+https://github.com/sul-cidr/josquin-tree.git"
   },
-  "author": "David McClure",
+  "author": "Karl Grossner, David McClure",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/sul-cidr/josquin-tree/issues"

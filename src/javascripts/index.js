@@ -756,8 +756,9 @@ if(params.display=='2up'){
   $("#sel_A").css("height","50%")
   $("#sel_B").removeClass("hidden")
   $("#svg_B").removeClass("hidden")
+  // $("#sel_B").hasClass('hidden')
   loadData('A');
-  loadData('B');
+  // loadData('B');
 } else {
   loadData('A');
 }
