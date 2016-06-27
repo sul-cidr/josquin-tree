@@ -870,7 +870,7 @@ function redraw(reset = false) {
       drawTree("A",apinotesA, rooty);
     } else {
       drawTree("A",apinotesA, rooty);
-      if(!$("#sel_B").attr('class')=='hidden'){
+      if(!$("#sel_B").hasClass('hidden')){
         drawTree("B",apinotesB, rooty);
       }
     }
