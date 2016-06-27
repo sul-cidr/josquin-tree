@@ -13,7 +13,8 @@ window.q = querystring;
 window.u = url;
 
 // defaults
-var params = {
+var params = {};
+var paramsA = {
   "c":"Obr","g":"all","w":"all","v":"all",
   "a":"pitch","root":"C","depth":1,"maxchil":6,"mincount":3,"reverse": false,
   "quant":"raw","display":"1up","filter":false
@@ -24,14 +25,21 @@ var paramsB = {
   "quant":"raw","display":"1up","filter":false
 }
 function resetParams(){
-  var params = {
+  var paramsA = {
+    "c":"Obr","g":"all","w":"all","v":"all",
+    "a":"pitch","root":"C","depth":2,"maxchil":6,"mincount":3,"reverse": false,
+    "quant":"raw","display":"1up","filter":false
+  }
+  var paramsB = {
     "c":"Obr","g":"all","w":"all","v":"all",
     "a":"pitch","root":"C","depth":2,"maxchil":6,"mincount":3,"reverse": false,
     "quant":"raw","display":"1up","filter":false
   }
 }
-window.params = params;
+window.paramsa = paramsA;
 window.paramsb = paramsB;
+// for starters
+params = paramsA;
 
 // parse url
 var url = require('url'),
@@ -43,9 +51,9 @@ if(isEmpty(searchParams)){
   location.href = location.href + '?'+querystring.stringify(searchParams)
 }
 
-// put values from url into params{} (we track both)
+// put values from url into params{} to start (we track both)
 _.each(searchParams, function(val,key){
-  params[key] = val;
+  paramsA[key] = val;
   paramsB[key] = val;
 })
 
@@ -98,11 +106,8 @@ let clusterB = d3.layout.cluster()
 
 function loadData(selection) {
   // console.log('loadData() selection, filter: '+selection,params.filter)
-  if(selection=='B'){
-    params = paramsB;
-  } else {
-    resetParams();
-  }
+  params = selection=='B' ? paramsB : paramsA;
+
   // ensure active select options correspond to params set by URL
   $('select[id="composer_'+selection+'"] option[value="'+params.c+'"]').prop('selected',true)
   $('select[id="genre_'+selection+'"] option[value="'+params.g+'"]').prop('selected',true)
@@ -309,20 +314,17 @@ function buildSeq(raw, featureType, voice = false) {
 }
 
 function drawTree(selection, seq, start=null) {
-  if('#svg'+selection){
-    $('#svg'+selection).remove();
-  }
+  // if('#svg'+selection){
+  $('#svg'+selection).remove();
+  // }
   let featureType = params.a
   console.log('drawTree('+selection+',seq,'+start+')')
-  if(selection == 'B'){
-    // draw B; resize & redraw A;
-    // TODO: nothing here?
-    // console.log('from drawTree(), redraw A & draw B')
-  }
+
   // remove existing tree, if exists
-  if(svgSet != '' ) {
-    d3.select('#svg'+selection).remove()
-  }
+  // if(svgSet != '' ) {
+  //   d3.select('#svg'+selection).remove()
+  // }
+  if(selection == 'A'){
   // create svg and g elements
   var svgA = d3.select('#svg_A')
     .append('svg')
@@ -331,7 +333,7 @@ function drawTree(selection, seq, start=null) {
     .attr('width', width)
     .attr('height', height*0.67)
     .append('g')
-
+  } else {
   var svgB = d3.select('#svg_B')
     .append('svg')
     .classed('tree', true)
@@ -339,23 +341,13 @@ function drawTree(selection, seq, start=null) {
     .attr('width', width)
     .attr('height', height/2 -100)
     .append('g')
-
+   }
   if(reverseTree) {
     featureType == 'pitch' ? svgY = -200 : svgY = 0;
     // featureType == 'pitch' ? svgX = -200 : svgX = 0;
   } else {
     featureType == 'pitch' ? svgY = height+20 : svgY = -20;
     // featureType == 'pitch' ? svgX = height+20 : svgX = -20;
-  }
-
-  if(featureType == 'pitch') {
-    svgA.attr('transform', 'translate(0,'+svgY+')');
-    svgB.attr('transform', 'translate(0,'+svgY+')');
-  }
-  else {
-    // svgA.attr('transform', 'translate(-500,0)');
-    // svgA.attr('transform', 'translate('+svgX+',0)');
-    // svgB.attr('transform', 'translate('+svgX+',0)');
   }
 
   if(selection == "A"){
@@ -366,6 +358,16 @@ function drawTree(selection, seq, start=null) {
     svgSet = svgB
     notesSet = apinotesB
     counterClass = '.countB'
+  }
+
+  if(featureType == 'pitch') {
+    svgSet.attr('transform', 'translate(0,'+svgY+')');
+    // svgB.attr('transform', 'translate(0,'+svgY+')');
+  }
+  else {
+    // svgA.attr('transform', 'translate(-500,0)');
+    // svgA.attr('transform', 'translate('+svgX+',0)');
+    // svgB.attr('transform', 'translate('+svgX+',0)');
   }
 
   let diagonal = d3.svg.diagonal()
@@ -408,7 +410,7 @@ function drawTree(selection, seq, start=null) {
   $(counterClass).text( featureType=='pitch'?counter+' notes':counter+' rhythms')
 
   // TODO: why this?
-  eval(svgSet).text('');
+  // eval(svgSet).text('');
 
   // TODO: still nec?
   if(start == null) {
@@ -630,12 +632,12 @@ $(document).ready(function() {
       searchParams.w = 'all';
       searchParams.v = 'all';
       searchParams.filter='c';
-      if($("sel_B").hasClass('hidden')){
+      if($("#sel_B").hasClass('hidden')){
         // refresh everything
         location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
       } else {
         // just loadData into A
-        params.c = this.value;
+        paramsA.c = this.value;
         loadData('A');
       }
     }
@@ -656,11 +658,12 @@ $(document).ready(function() {
       searchParams.w = 'all';
       searchParams.v = 'all';
       searchParams.filter='g';
-      if($("sel_B").hasClass('hidden')){
+      if($("#sel_B").hasClass('hidden')){
+        console.log('B is empty, so location.href')
         location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
       } else {
         // just loadData into A
-        params.g = this.value;
+        paramsA.g = this.value;
         loadData('A');
       }
     }
@@ -678,7 +681,13 @@ $(document).ready(function() {
       loadData('B')
     } else {
       searchParams.w = this.value;
-      location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
+      if($("#sel_B").hasClass('hidden')){
+        location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
+      } else {
+        // just loadData into A
+        paramsA.w = this.value;
+        loadData('A');
+      }
     }
   })
   $(".select-voice").change(function(){
@@ -693,7 +702,13 @@ $(document).ready(function() {
       loadData('B')
     } else {
       searchParams.v = this.value;
-      location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
+      if($("#sel_B").hasClass('hidden')){
+        location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
+      } else {
+        // just loadData into A
+        paramsA.v = this.value;
+        loadData('A');
+      }
     }
 
   })
