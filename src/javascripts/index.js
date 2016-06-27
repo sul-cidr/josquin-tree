@@ -15,7 +15,7 @@ window.u = url;
 // defaults
 var params = {
   "c":"Obr","g":"all","w":"all","v":"all",
-  "a":"pitch","root":"C","depth":2,"maxchil":6,"mincount":3,"reverse": false,
+  "a":"pitch","root":"C","depth":1,"maxchil":6,"mincount":3,"reverse": false,
   "quant":"raw","display":"1up","filter":false
 }
 var paramsB = {
@@ -100,6 +100,8 @@ function loadData(selection) {
   // console.log('loadData() selection, filter: '+selection,params.filter)
   if(selection=='B'){
     params = paramsB;
+  } else {
+    resetParams();
   }
   // ensure active select options correspond to params set by URL
   $('select[id="composer_'+selection+'"] option[value="'+params.c+'"]').prop('selected',true)
@@ -405,6 +407,7 @@ function drawTree(selection, seq, start=null) {
   // console.log(counter);
   $(counterClass).text( featureType=='pitch'?counter+' notes':counter+' rhythms')
 
+  // TODO: why this?
   eval(svgSet).text('');
 
   // TODO: still nec?
@@ -627,7 +630,14 @@ $(document).ready(function() {
       searchParams.w = 'all';
       searchParams.v = 'all';
       searchParams.filter='c';
-      location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
+      if($("sel_B").hasClass('hidden')){
+        // refresh everything
+        location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
+      } else {
+        // just loadData into A
+        params.c = this.value;
+        loadData('A');
+      }
     }
     // location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
     // loadData(this.id.substr(-1), 'c')
@@ -646,7 +656,13 @@ $(document).ready(function() {
       searchParams.w = 'all';
       searchParams.v = 'all';
       searchParams.filter='g';
-      location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
+      if($("sel_B").hasClass('hidden')){
+        location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
+      } else {
+        // just loadData into A
+        params.g = this.value;
+        loadData('A');
+      }
     }
   })
   $(".select-work").change(function(){
@@ -700,10 +716,10 @@ $(document).ready(function() {
   })
 
   $('#b_reset').click(function(){
-    redraw(aType,true)
+    redraw(true)
   })
   $('#b_render').click(function(){
-    redraw(aType,false)
+    redraw()
   })
   $("#rcheck").change(function (){
     console.log('this.checked',this.checked)
@@ -715,10 +731,9 @@ $(document).ready(function() {
     }
     console.log(location.origin+'/jrp/?'+querystring.stringify(searchParams))
     location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams)
-    // redraw(aType)
   })
   $("#radio_count").change(function(){
-    redraw(aType)
+    redraw()
   })
   $("#feature_type").change(function(){
     let feature = $('input[name="r_feature"]:checked').val();
@@ -758,6 +773,9 @@ if(params.display=='2up'){
   $("#svg_B").removeClass("hidden")
   // $("#sel_B").hasClass('hidden')
   loadData('A');
+  // if(){
+  //
+  // }
   // loadData('B');
 } else {
   loadData('A');
@@ -806,7 +824,7 @@ function getVoices(works, selection) {
   */
 
 // redraw "in place" or reset (new location.href)
-function redraw(featureType = null, reset = false) {
+function redraw(reset = false) {
   console.log(reset?'reset':'redrew')
   if(reset){
     resetParams();
@@ -827,10 +845,16 @@ function redraw(featureType = null, reset = false) {
     // $('input:radio[value=raw]').prop('checked',true);
   } else {
     var rooty = validateRoot($('input[name="root"]').val());
-    drawTree("A",apinotesA, rooty);
-  }
-  if(!$("#sel_B").attr('class')=='hidden'){
-    drawTree("B",apinotesB, rooty);
+    if($('input[name="depth"]').prop('value')<2){
+      alert('Depth must be 2 or greater')
+      $('input[name="depth"]').prop('value',2)
+      drawTree("A",apinotesA, rooty);
+    } else {
+      drawTree("A",apinotesA, rooty);
+      if(!$("#sel_B").attr('class')=='hidden'){
+        drawTree("B",apinotesB, rooty);
+      }
+    }
   }
 }
 
