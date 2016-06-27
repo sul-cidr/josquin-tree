@@ -326,40 +326,48 @@ function drawTree(selection, seq, start=null) {
   // }
   if(selection == 'A'){
   // create svg and g elements
-  var svgA = d3.select('#svg_A')
-    .append('svg')
-    .classed('tree', true)
-    .attr('id','svgA')
-    .attr('width', width)
-    .attr('height', height*0.67)
-    .append('g')
-  } else {
-  var svgB = d3.select('#svg_B')
-    .append('svg')
-    .classed('tree', true)
-    .attr('id','svgB')
-    .attr('width', width)
-    .attr('height', height/2 -100)
-    .append('g')
-   }
+    var svgA = d3.select('#svg_A')
+      .append('svg')
+      .classed('tree', true)
+      .attr('id','svgA')
+      .attr('width', width)
+      .attr('height', height*0.67)
+      .append('g');
+      svgSet = svgA;
+      notesSet = apinotesA;
+      counterClass = '.countA';
+    } else {
+      var svgB = d3.select('#svg_B')
+      .append('svg')
+      .classed('tree', true)
+      .attr('id','svgB')
+      .attr('width', width)
+      .attr('height', height/2 -100)
+      .append('g');
+      svgSet = svgB;
+      notesSet = apinotesB;
+      counterClass = '.countB';
+    }
+
   if(reverseTree) {
-    featureType == 'pitch' ? svgY = -200 : svgY = 0;
+    featureType == 'pitch' ? params.display=='2up' ? svgY = -(height-230) : svgY = -200  : svgY = 0;
+    // featureType == 'pitch' ? params.display=='1up' ? svgY = -200 : svgY = height  : svgY = 0;
     // featureType == 'pitch' ? svgX = -200 : svgX = 0;
   } else {
     featureType == 'pitch' ? svgY = height+20 : svgY = -20;
     // featureType == 'pitch' ? svgX = height+20 : svgX = -20;
   }
 
-  if(selection == "A"){
-    svgSet = svgA
-    notesSet = apinotesA
-    counterClass = '.countA'
-  } else if(selection == "B"){
-    svgSet = svgB
-    notesSet = apinotesB
-    counterClass = '.countB'
-  }
-
+  // if(selection == 'A'){
+  //   svgSet = svgA
+  //   notesSet = apinotesA
+  //   counterClass = '.countA'
+  // } else if(selection == 'B'){
+  //   svgSet = svgB
+  //   notesSet = apinotesB
+  //   counterClass = '.countB'
+  // }
+  console.log('svgSet, svgY',svgSet,svgY)
   if(featureType == 'pitch') {
     svgSet.attr('transform', 'translate(0,'+svgY+')');
     // svgB.attr('transform', 'translate(0,'+svgY+')');
@@ -573,7 +581,7 @@ function drawTree(selection, seq, start=null) {
         return d.depth == 0 ? 10 : d.depth == 1 ? +
           (scaleNode(d.count,[minCount,maxCount]) + 4 ) : 0;
       } else {
-        console.log(d.depth)
+        // console.log(d.depth)
         return d.depth < 1 ? 10 : d.depth ==1 ? scaleNode(d.count,[minCount,maxCount]) + 3: 0;
             // scaleNode(d.count,[minCount,maxCount]);
       }
@@ -745,11 +753,12 @@ $(document).ready(function() {
       searchParams.reverse = 'true'
     } else {
       searchParams.reverse = ''
-      console.log('unchecked')
+      // console.log('unchecked')
     }
     console.log(location.origin+'/jrp/?'+querystring.stringify(searchParams))
     location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams)
   })
+
   $("#radio_count").change(function(){
     redraw()
   })
