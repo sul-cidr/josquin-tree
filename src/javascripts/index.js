@@ -622,7 +622,7 @@ $(document).ready(function() {
 
   $(".select-composer").change(function(){
     console.clear()
-    // window.rooty = $('input[name="root"]').val();
+    window.rooty = $('input[name="root"]').val();
     // console.log('hold this root:',rooty)
     filter = 'c';
     if(this.id.substr(-1) == 'B'){
@@ -654,6 +654,7 @@ $(document).ready(function() {
   })
   $(".select-genre").change(function(){
     console.clear()
+    window.rooty = $('input[name="root"]').val();
     if(this.id.substr(-1) == 'B'){
       paramsB.g = this.value;
       paramsB.w = 'all';
@@ -665,6 +666,7 @@ $(document).ready(function() {
       searchParams.w = 'all';
       searchParams.v = 'all';
       searchParams.filter='g';
+      searchParams.root = rooty;
       if($("#sel_B").hasClass('hidden')){
         console.log('B is empty, so location.href')
         location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
@@ -677,6 +679,7 @@ $(document).ready(function() {
   })
   $(".select-work").change(function(){
     // console.clear()
+    window.rooty = $('input[name="root"]').val();
     console.log('changed work to', this.value)
     searchParams.w = this.value;
     searchParams.filter='w';
@@ -688,6 +691,7 @@ $(document).ready(function() {
       loadData('B')
     } else {
       searchParams.w = this.value;
+      searchParams.root = rooty;
       if($("#sel_B").hasClass('hidden')){
         location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
       } else {
@@ -699,6 +703,7 @@ $(document).ready(function() {
   })
   $(".select-voice").change(function(){
     // console.clear()
+    window.rooty = $('input[name="root"]').val();
     searchParams.v = this.value;
     searchParams.filter='v';
     console.log('voice changed to ' +this.value+', searchParams now',searchParams)
@@ -709,6 +714,7 @@ $(document).ready(function() {
       loadData('B')
     } else {
       searchParams.v = this.value;
+      searchParams.root = rooty;
       if($("#sel_B").hasClass('hidden')){
         location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
       } else {
@@ -765,13 +771,14 @@ $(document).ready(function() {
     console.log('feature_type',feature)
     if (feature == 'pitch') {
       searchParams.a = 'pitch'
+      searchParams.root = 'C'
       location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
       // params.a = 'pitch'
       $('input[name="root"]').val('C')
       $(".toggle-add").removeClass("hidden")
     } else {
       searchParams.a = 'rhythm'
-      // searchParams.root = 'w_b'
+      searchParams.root = 'w_b'
       // params.a = 'rhythm'
       location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
     }
@@ -861,8 +868,11 @@ function redraw(reset = false) {
     // params.a = 'pitch';
     // $('input[name="root"]').prop('value','C');
     searchParams.root = 'C';
+    searchParams.g = 'all';
+    searchParams.w = 'all';
+    searchParams.v = 'all';
     // params.root
-    var rooty = 'C';
+    // var rooty = 'C';
     $('input[name="depth"]').prop('value',2);
     $('input[name="max-children"]').prop('value',6);
     $('input[name="min-count"]').prop('value',3);
