@@ -648,8 +648,6 @@ $(document).ready(function() {
         loadData('A');
       }
     }
-    // location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
-    // loadData(this.id.substr(-1), 'c')
 
   })
   $(".select-genre").change(function(){
@@ -749,6 +747,8 @@ $(document).ready(function() {
     redraw(true)
   })
   $('#b_render').click(function(){
+    // window.rooty = $('input[name="root"]').val();
+    // searchParams.root = rooty;
     redraw()
   })
   $("#rcheck").change(function (){
@@ -856,6 +856,14 @@ function getVoices(works, selection) {
   * misc utility functions
   */
 
+  // reload location on any resize
+function resize() {
+  width = parseInt(d3.select('#svg_A').style('width'), 10);
+  width = width - margin.left - margin.right;
+  console.log('new width', width);
+  location.reload();
+}
+
 // redraw "in place" or reset (new location.href)
 function redraw(reset = false) {
 // function redraw(reset = false) {
@@ -881,27 +889,22 @@ function redraw(reset = false) {
     searchParams.reverse = null;
     location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams)
     // $('input:radio[value=raw]').prop('checked',true);
-  } else {
+  }
+  else {
     var rooty = validateRoot($('input[name="root"]').val());
+    searchParams.root = rooty;
     if($('input[name="depth"]').prop('value')<2){
       alert('Depth must be 2 or greater')
       $('input[name="depth"]').prop('value',2)
       drawTree("A",apinotesA, rooty);
     } else {
+      // loadData("A");
       drawTree("A",apinotesA, rooty);
       if(!$("#sel_B").hasClass('hidden')){
         drawTree("B",apinotesB, rooty);
       }
     }
   }
-}
-
-// reload location on any resize
-function resize() {
-  width = parseInt(d3.select('#svg_A').style('width'), 10);
-  width = width - margin.left - margin.right;
-  console.log('new width', width);
-  location.reload();
 }
 
 // permit multiple letter root with space
