@@ -279,7 +279,8 @@ function loadData(selection) {
     }
 
     // render sequence
-    drawTree(selection, sequence, rooty);
+    drawTree(selection, sequence, paramsa.root);
+    // drawTree(selection, sequence, rooty);
     window.seq = sequence;
   })
 }
@@ -415,6 +416,7 @@ function drawTree(selection, seq, start=null) {
     }
   } else {
     root = validateRoot(start);
+    $('input[name="root"]').val(root)
   }
 
   let depth = Number($('input[name="depth"]').val());
@@ -620,6 +622,8 @@ $(document).ready(function() {
 
   $(".select-composer").change(function(){
     console.clear()
+    // window.rooty = $('input[name="root"]').val();
+    // console.log('hold this root:',rooty)
     filter = 'c';
     if(this.id.substr(-1) == 'B'){
       paramsB.c = this.value;
@@ -634,6 +638,7 @@ $(document).ready(function() {
       searchParams.w = 'all';
       searchParams.v = 'all';
       searchParams.filter='c';
+      searchParams.root = rooty;
       if($("#sel_B").hasClass('hidden')){
         // refresh everything
         location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams);
@@ -846,6 +851,7 @@ function getVoices(works, selection) {
 
 // redraw "in place" or reset (new location.href)
 function redraw(reset = false) {
+// function redraw(reset = false) {
   console.log(reset?'reset':'redrew')
   if(reset){
     resetParams();
@@ -853,7 +859,8 @@ function redraw(reset = false) {
     // radio-count quant_format = raw
     $('#r_pitch').prop('checked',true);
     // params.a = 'pitch';
-    $('input[name="root"]').prop('value','C');
+    // $('input[name="root"]').prop('value','C');
+    searchParams.root = 'C';
     // params.root
     var rooty = 'C';
     $('input[name="depth"]').prop('value',2);

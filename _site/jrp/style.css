@@ -6829,3 +6829,7 @@ svg:not(:root) {
 input[type="radio"] {
   margin: 4px 0 0 8px;
 }
+.help {
+  font-size: .8em;
+  font-style: italic;
+}
