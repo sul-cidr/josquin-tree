@@ -108,6 +108,7 @@ let clusterB = d3.layout.cluster()
 function loadData(selection) {
   // console.log('loadData() selection, filter: '+selection,params.filter)
   params = selection=='B' ? paramsB : paramsA;
+  console.log('active params',selection,params)
 
   // ensure active select options correspond to active params
   $('select[id="composer_'+selection+'"] option[value="'+params.c+'"]').prop('selected',true)
@@ -117,23 +118,28 @@ function loadData(selection) {
   $('#r_'+params.a).prop('checked',true)
   $('#rcheck').prop('checked',reverseTree?true:false)
 
-  // url sent a work (not all), get & set composer
-  if(searchParams.w && searchParams.w != 'all') {
+  // url sent a work only, get & set composer
+  if(params.w != 'all') {
       params.c = searchParams.w.substring(0,3)
     filter = 'w';
   }
-  // set value for var filter TODO: necessary?
-  if(searchParams.v && searchParams.v != 'all'){
+  // set value for var filter TODO: only nec. if parent site offers this
+  if(params.v != 'all') {
     filter = 'v';
-    console.log('searchParams != all',searchParams.v)
   }
-  // always get all works for composer
-  let url = 'http://josquin.stanford.edu/cgi-bin/jrp?a='+params.a+'tree&f=' + params.c + '&genre=';
+  // get all data for active composer regardless of any other parameters
+  let url = 'http://josquin.stanford.edu/cgi-bin/jrp?a='+params.a+
+    'tree&f=' + params.c + '&genre=';
   console.log('url:', url);
   d3.json(url, function(error, raw) {
     // console.log(raw.length +' works, filter = '+filter)
     window.r=raw;
     console.log('active params:',selection,params)
+
+    /**
+      *  140 - 235 populate dropdowns
+      */
+
     // hold all works for composer
     workArray = getWorks(raw,selection).sort(sortByTitle);
     window.works = workArray
@@ -184,7 +190,6 @@ function loadData(selection) {
       filteredWorkArrayG = getWorks(raw,selection);
       voiceArray = getVoices(filteredWorkArrayG,selection);
 
-
       $("#work_"+selection).find('option').remove()
       $("#work_"+selection).append('<option value="all">All</option>')
 
@@ -229,9 +234,12 @@ function loadData(selection) {
       $('select[id="work_'+selection+'"] option[value="'+params.w+'"]').prop('selected',true);
     }
 
-    // voice
+    /**
+      * handle voice, then build feature sequence
+      */
+
     if(params.v != 'all') {
-      console.log('params.v != all')
+      // console.log('params.v != all')
       // console.log(raw)
       sequence = buildSeq(raw,params.a,params.v)
       $('select[id="voice_'+selection+'"] option[value="'+params.v+'"]').prop('selected',true)
@@ -279,9 +287,11 @@ function loadData(selection) {
       $(".toggle-add").addClass("hidden")
     }
 
-    // render sequence
-    drawTree(selection, sequence, paramsa.root);
-    // drawTree(selection, sequence, rooty);
+    /**
+      * render sequence
+      */
+    drawTree(selection, sequence, params.root);
+    // expose feature array
     window.seq = sequence;
   })
 }
@@ -743,16 +753,14 @@ $(document).ready(function() {
       // $("input[name=r_feature][value=rhythm]").attr('disabled',true)
       $("#sel_B").removeClass("hidden")
       searchParams.display = '2up'
-      location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams)
-      // drawTree('B', seq, params.root)
     } else {
       $(".toggle-add").text("Add comparison set")
       // $("input[name=r_feature][value=rhythm]").attr('disabled',true)
       $("#sel_B").addClass("hidden")
       d3.select('#svgB').remove()
       searchParams.display = '1up'
-      location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams)
     }
+    location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams)
   })
 
   $('#b_reset').click(function(){
@@ -875,7 +883,6 @@ function resize() {
 
 // redraw "in place" or reset (new location.href)
 function redraw(reset = false) {
-// function redraw(reset = false) {
   console.log(reset?'reset':'redrew')
   if(reset){
     resetParams();
