@@ -332,7 +332,8 @@ function drawTree(selection, seq, start=null) {
       .classed('tree', true)
       .attr('id','svgA')
       .attr('width', width)
-      .attr('height', height*0.67)
+      // conditional
+      .attr('height', searchParams.display=='1up'?height:(height*0.67)/2)
       .append('g');
       svgSet = svgA;
       notesSet = apinotesA;
