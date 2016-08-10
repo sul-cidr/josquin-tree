@@ -319,7 +319,7 @@ function drawTree(selection, seq, start=null) {
   $('#svg'+selection).remove();
   // }
   let featureType = params.a
-  console.log('drawTree('+selection+',seq,'+start+')')
+  console.log('drawTree('+selection+', note seq,'+start+')')
 
   // remove existing tree, if exists
   // if(svgSet != '' ) {
@@ -407,8 +407,6 @@ function drawTree(selection, seq, start=null) {
   // console.log(counter);
   $(counterClass).text( featureType=='pitch'?counter+' notes':counter+' rhythms')
 
-  // TODO: why this?
-  // eval(svgSet).text('');
 
   // TODO: still nec?
   if(start == null) {
@@ -429,6 +427,8 @@ function drawTree(selection, seq, start=null) {
   let data = tree.query(root, depth, maxChildren, minCountDisplay);
   let nodes = selection=="A"?clusterA.nodes(data):clusterB.nodes(data);
   let links = selection=="A"?clusterA.links(nodes):clusterB.links(nodes);
+
+  // expose during development
   window.data=data
   window.l = links
   window.n = nodes
@@ -441,14 +441,15 @@ function drawTree(selection, seq, start=null) {
     .data(links)
     .enter()
     .append('path')
-    // .attr('class', 'link')
-    .attr('class', function(d) {
-      if(d.target.count < minCountDisplay && d.depth > 0) {
-        return 'hidden-link'
-      } else {
-        return 'link'
-      }
-    })
+    .attr('class', 'link')
+    // abandoned method of preventing crossing edge lines
+    // .attr('class', function(d) {
+    //   if(d.target.count < minCountDisplay && d.depth > 0) {
+    //     return 'hidden-link'
+    //   } else {
+    //     return 'link'
+    //   }
+    // })
     .attr('d', !reverseTree ? diagonal : diagonalR)
     .attr('stroke-width', 4)
 
@@ -479,22 +480,30 @@ function drawTree(selection, seq, start=null) {
     })
     .on('click', function(d) {
       console.clear();
-      newRoot = [];
+      var newRoot = [], rooty = '';
       window.n = d;
+      // figure out root, display in input box, add to searchParams
+      // generate new URL, reload
       if (d3.event.shiftKey) {
+        // if shift-click, get parents
         if(featureType == 'pitch') {
-          let rooty = params.reverse==""?recurseParents(d).reverse():recurseParents(d);
-          console.log('rooty', rooty.join(','))
-          // $('input[name="min-count"]').val(1)
-          $('input[name="root"]').prop('value',rooty.join(','));
-          drawTree(selection, seq, rooty.join(','));
+          rooty = params.reverse==""?recurseParents(d).reverse().join(','):
+            recurseParents(d).join(',');
+          // console.log('rooty', rooty.join(','))
+          $('input[name="root"]').prop('value',rooty);
+          // drawTree(selection, seq, rooty.join(','));
         }
       } else if (d3.event.altKey) {
+        // nothing for this yet
         console.log('altKey');
       } else {
-        drawTree(this.className.baseVal.substr(-1), seq, d.name);
-        $('input[name="root"]').prop('value',d.name);
+        // drawTree(this.className.baseVal.substr(-1), seq, d.name);
+        rooty = d.name;
+        $('input[name="root"]').prop('value',rooty);
       }
+      searchParams.root = rooty;
+      location.href=location.origin+'/jrp/?'+
+        querystring.stringify(searchParams);
     });
 
   let circ = node.append('circle')
