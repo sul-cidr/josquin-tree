@@ -94,6 +94,7 @@ function getDimsA(){
   // console.log('getDims() result:',aHeight)
   return aHeight;
 }
+
 let clusterA = d3.layout.cluster()
   .size(getDimsA())
 let clusterB = d3.layout.cluster()
@@ -575,24 +576,25 @@ function drawTree(selection, seq, start=null) {
           // -(scaleNode(d.count,[minCount,maxCount])+12) : -5;
       })
   }
-  // console.log('reverseTree', reverseTree);
   // counts
   node.append('text')
     .attr('dx', function(d) {
       if(!reverseTree){
         return d.depth == 0 ? 10 : d.depth == 1 ? +
-          (scaleNode(d.count,[minCount,maxCount]) + 4 ) : - (scaleNode(d.count,[minCount,maxCount])+4 );
-          // (scaleNode(d.count,[minCount,maxCount]) + 4 ) : 0;
+          (scaleNode(d.count,[minCount,maxCount]) + 4 ) : 5;
+          // -(scaleNode(d.count,[minCount,maxCount])+4 );
       } else {
         // console.log(d.depth)
-        return d.depth < 1 ? 10 : d.depth ==1 ? scaleNode(d.count,[minCount,maxCount]) + 3: 0;
+        return d.depth < 1 ? 10 :
+          d.depth ==1 ? scaleNode(d.count,[minCount,maxCount]) + 3: 0;
             // scaleNode(d.count,[minCount,maxCount]);
       }
     })
     .attr('dy', function(d) {
       if(!reverseTree){
-        return ".35em";
-        // return d.depth > 1 ? scaleNode(d.count,[minCount,maxCount]) +14 : ".35em";
+        // return ".35em";
+        return d.depth > 1 ?
+          scaleNode(d.count,[minCount,maxCount]) +14 : ".35em";
       } else {
         return d.depth < 1 ? 10 : d.depth == 1 ? ".35em":
             scaleNode(d.count,[minCount,maxCount]) + 14;
@@ -816,10 +818,7 @@ if(params.display=='2up'){
   $("#svg_B").removeClass("hidden")
   // $("#sel_B").hasClass('hidden')
   loadData('A');
-  // if(){
-  //
-  // }
-  // loadData('B');
+  loadData('B');
 } else {
   loadData('A');
 }
