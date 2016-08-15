@@ -110,13 +110,18 @@ function loadData(selection) {
   params = selection=='B' ? paramsB : paramsA;
   console.log('active params',selection,params)
 
-  // ensure active select options correspond to active params
+  // ensure selected options correspond to href
   $('select[id="composer_'+selection+'"] option[value="'+params.c+'"]').prop('selected',true)
   $('select[id="genre_'+selection+'"] option[value="'+params.g+'"]').prop('selected',true)
   $('select[id="work_'+selection+'"] option[value="'+params.w+'"]').prop('selected',true)
   $('select[id="voice_'+selection+'"] option[value="'+params.v+'"]').prop('selected',true)
   $('#r_'+params.a).prop('checked',true)
-  $('#rcheck').prop('checked',reverseTree?true:false)
+
+  // ensure form has params from href
+  $('input[name="depth"]').prop('value',params.depth);
+  $('input[name="max-children"]').prop('value',params.maxchil);
+  $('input[name="min-count"]').prop('value',params.mincount);
+  $('#rcheck').prop('checked',params.reverse==''?false:true)
 
   // url sent a work only, get & set composer
   if(params.w != 'all') {
@@ -873,54 +878,63 @@ function getVoices(works, selection) {
   * misc utility functions
   */
 
+  // redraw "in place" or reset (new location.href)
+function redraw(reset = false) {
+  console.log(reset?'reset':'redrew')
+  if(reset){
+    // reset params in href
+    // resetParams();
+    $('#r_pitch').prop('checked',true);
+    searchParams.c = 'Obr'
+    searchParams.root = 'C';
+    searchParams.g = 'all';
+    searchParams.w = 'all';
+    searchParams.v = 'all';
+    searchParams.depth = '2'
+    searchParams.maxchil = '6'
+    searchParams.mincount = 3
+    searchParams.reverse = null;
+    // searchParams.reverse = $('#rcheck').prop('checked')?true:null
+
+    // reset form to defaults
+    $('input[name="depth"]').prop('value',2);
+    $('input[name="max-children"]').prop('value',6);
+    $('input[name="min-count"]').prop('value',3);
+    $('#rcheck').prop('checked',false); // Reverse checkbox
+
+    location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams)
+    // $('input:radio[value=raw]').prop('checked',true);
+  }
+  else {
+    // redraw w/current params (build & load href)
+    var rooty = validateRoot($('input[name="root"]').val());
+    searchParams.root = rooty;
+    searchParams.depth = $('input[name="depth"]').val()
+    searchParams.maxchil = $('input[name="max-children"]').val()
+    searchParams.mincount = $('input[name="min-count"]').val()
+    searchParams.reverse = $('#rcheck').prop('checked')?true:null
+    if($('input[name="depth"]').prop('value')<2){
+      alert('Depth must be 2 or greater')
+      $('input[name="depth"]').prop('value',2)
+    }
+    // set form to defaults
+    // reload with current params
+    location.href=location.origin+'/jrp/?'+
+      querystring.stringify(searchParams)
+
+    // drawTree("A",apinotesA, rooty);
+    if(!$("#sel_B").hasClass('hidden')){
+      drawTree("B",apinotesB, rooty);
+    }
+  }
+}
+
   // reload location on any resize
 function resize() {
   width = parseInt(d3.select('#svg_A').style('width'), 10);
   width = width - margin.left - margin.right;
   console.log('new width', width);
   location.reload();
-}
-
-// redraw "in place" or reset (new location.href)
-function redraw(reset = false) {
-  console.log(reset?'reset':'redrew')
-  if(reset){
-    resetParams();
-    // input [r_feature->pitch=checked, root=C, depth=2, max-children=6, min-count=3, reverse=false]
-    // radio-count quant_format = raw
-    $('#r_pitch').prop('checked',true);
-    // params.a = 'pitch';
-    // $('input[name="root"]').prop('value','C');
-    searchParams.root = 'C';
-    searchParams.g = 'all';
-    searchParams.w = 'all';
-    searchParams.v = 'all';
-    // params.root
-    // var rooty = 'C';
-    $('input[name="depth"]').prop('value',2);
-    $('input[name="max-children"]').prop('value',6);
-    $('input[name="min-count"]').prop('value',3);
-    $('#rcheck').prop('checked',false); // Reverse checkbox
-
-    searchParams.reverse = null;
-    location.href=location.origin+'/jrp/?'+querystring.stringify(searchParams)
-    // $('input:radio[value=raw]').prop('checked',true);
-  }
-  else {
-    var rooty = validateRoot($('input[name="root"]').val());
-    searchParams.root = rooty;
-    if($('input[name="depth"]').prop('value')<2){
-      alert('Depth must be 2 or greater')
-      $('input[name="depth"]').prop('value',2)
-      drawTree("A",apinotesA, rooty);
-    } else {
-      // loadData("A");
-      drawTree("A",apinotesA, rooty);
-      if(!$("#sel_B").hasClass('hidden')){
-        drawTree("B",apinotesB, rooty);
-      }
-    }
-  }
 }
 
 // permit multiple letter root with space
